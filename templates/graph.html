@@ -1,0 +1,614 @@
+{% extends 'base.html' %}
+
+{% block title_suffix %} – Characteristics Graph{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ===== Graph Page Styles ===== */
+
+/* --- Page Header --- */
+.graph-header {
+    text-align: center;
+    padding: 48px 28px 32px;
+}
+
+/* --- Graph Container --- */
+.graph-container {
+    position: relative;
+    max-width: 1200px;
+    margin: 0 auto 40px;
+    padding: 0 28px;
+}
+.graph-panel {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--border-glow);
+    border-radius: var(--rad);
+    overflow: hidden;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+.graph-canvas-wrap {
+    position: relative;
+    width: 100%;
+    height: 560px;
+}
+#bjtCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+}
+
+/* --- Slider Overlay (inside graph panel, top-right) --- */
+.graph-slider-overlay {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 20;
+    background: rgba(6, 11, 22, 0.45);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    border-radius: var(--rad-sm);
+    padding: 14px 18px;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    min-width: 250px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.graph-slider-overlay:hover {
+    background: rgba(6, 11, 22, 0.78);
+    border-color: rgba(0, 212, 255, 0.55);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 212, 255, 0.2);
+}
+.graph-slider-overlay .slider-title {
+    font-family: var(--ff-display);
+    font-size: 0.58rem;
+    letter-spacing: 2px;
+    color: var(--text2);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+.graph-slider-overlay .slider-value-display {
+    font-family: var(--ff-mono);
+    font-size: 1.3rem;
+    color: var(--accent);
+    text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+    margin-bottom: 4px;
+    text-align: center;
+    cursor: text;
+}
+.graph-slider-overlay .slider-hint {
+    font-size: 0.68rem;
+    color: var(--text3);
+    text-align: center;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+}
+#rbGraphNum {
+    display: inline-block;
+    cursor: text;
+    outline: none;
+    border: none;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    caret-color: #fff;
+    min-width: 25px;
+    transition: color .2s ease;
+}
+#rbGraphNum:focus {
+    color: #fff;
+    text-shadow: 0 0 14px rgba(0,212,255,.8);
+}
+.graph-slider-overlay input[type=range].rb-slider {
+    width: 100%;
+    max-width: 100%;
+}
+
+/* --- Presets Bar --- */
+.graph-presets {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+    margin-top: 8px;
+    margin-bottom: 10px;
+}
+.preset-btn {
+    background: rgba(14, 22, 40, 0.45);
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    border-radius: var(--rad-xs);
+    color: var(--text2);
+    font-family: var(--ff-display);
+    font-size: 0.56rem;
+    letter-spacing: 0.5px;
+    padding: 5px 2px;
+    cursor: pointer;
+    transition: var(--tr);
+    text-align: center;
+}
+.preset-btn:hover {
+    background: rgba(0, 212, 255, 0.25);
+    border-color: var(--cyan);
+    color: #fff;
+    box-shadow: 0 0 8px rgba(0, 212, 255, 0.3);
+}
+
+/* --- Telemetry Panel in Overlay --- */
+.graph-telemetry {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(228, 234, 246, 0.12);
+    font-family: var(--ff-mono);
+    font-size: 0.74rem;
+}
+.graph-telemetry .tele-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(10, 16, 30, 0.42);
+    padding: 4px 7px;
+    border-radius: 4px;
+    border: 1px solid rgba(228, 234, 246, 0.08);
+}
+.graph-telemetry .tele-item.full-width {
+    grid-column: 1 / -1;
+}
+.graph-telemetry .tele-lbl {
+    color: var(--text2);
+    font-size: 0.66rem;
+    letter-spacing: 0.5px;
+}
+.graph-telemetry .tele-val {
+    color: #fff;
+    font-weight: 600;
+}
+.buzzer-tag {
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 0.68rem;
+    letter-spacing: 1px;
+    font-family: var(--ff-display);
+}
+.buzzer-tag.on {
+    background: rgba(0, 230, 118, 0.2);
+    color: var(--green);
+    border: 1px solid rgba(0, 230, 118, 0.4);
+    box-shadow: 0 0 8px rgba(0, 230, 118, 0.3);
+}
+.buzzer-tag.off {
+    background: rgba(255, 23, 68, 0.2);
+    color: var(--red);
+    border: 1px solid rgba(255, 23, 68, 0.4);
+}
+.reg-tag {
+    font-size: 0.68rem;
+    font-family: var(--ff-display);
+    letter-spacing: 0.5px;
+}
+.reg-tag.saturation { color: var(--cyan); }
+.reg-tag.active { color: var(--green); }
+.reg-tag.cutoff { color: var(--red); }
+
+/* --- Region Transition Popup --- */
+.region-popup {
+    position: absolute;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    z-index: 30;
+    background: rgba(8, 14, 28, 0.94);
+    border: 1px solid var(--border-glow);
+    border-radius: var(--rad);
+    padding: 16px 28px;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+    text-align: center;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.4s var(--ease), transform 0.4s var(--ease), visibility 0.4s;
+    min-width: 300px;
+    max-width: 440px;
+}
+.region-popup.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+}
+.region-popup .popup-region-title {
+    font-family: var(--ff-display);
+    font-size: 0.85rem;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+}
+.region-popup .popup-region-msg {
+    font-size: 0.88rem;
+    color: var(--text2);
+    line-height: 1.4;
+}
+.region-popup.cutoff .popup-region-title { color: var(--red); }
+.region-popup.active .popup-region-title { color: var(--green); }
+.region-popup.saturation .popup-region-title { color: var(--cyan); }
+
+/* --- Legend Section --- */
+.legend-section {
+    max-width: 1200px;
+    margin: 0 auto 48px;
+    padding: 0 28px;
+}
+.legend-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+.legend-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-glow);
+    border-radius: var(--rad);
+    padding: 20px 22px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    transition: var(--tr);
+    position: relative;
+    overflow: hidden;
+}
+.legend-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    opacity: 0;
+    transition: var(--tr);
+}
+.legend-card.highlight {
+    border-color: rgba(0, 212, 255, 0.4);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+.legend-card.highlight::before {
+    opacity: 1;
+}
+.legend-card.cutoff-card::before { background: var(--red); }
+.legend-card.active-card::before { background: var(--green); }
+.legend-card.saturation-card::before { background: var(--cyan); }
+.legend-card.cutoff-card.highlight { border-color: rgba(255, 23, 68, 0.35); }
+.legend-card.active-card.highlight { border-color: rgba(0, 230, 118, 0.35); }
+.legend-card.saturation-card.highlight { border-color: rgba(0, 212, 255, 0.35); }
+
+.legend-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 4px;
+}
+.legend-dot.red { background: var(--red); box-shadow: 0 0 8px rgba(255, 23, 68, 0.5); }
+.legend-dot.green { background: var(--green); box-shadow: 0 0 8px rgba(0, 230, 118, 0.5); }
+.legend-dot.cyan { background: var(--cyan); box-shadow: 0 0 8px rgba(0, 229, 255, 0.5); }
+.legend-info .legend-label {
+    font-family: var(--ff-display);
+    font-size: 0.72rem;
+    letter-spacing: 2px;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+.legend-info .legend-desc {
+    font-size: 0.88rem;
+    color: var(--text2);
+    line-height: 1.45;
+}
+
+/* --- Formula References --- */
+.formulas-section {
+    max-width: 1200px;
+    margin: 0 auto 48px;
+    padding: 0 28px;
+}
+.formula-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+.formula-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-glow);
+    border-radius: var(--rad);
+    padding: 22px 18px;
+    text-align: center;
+    transition: var(--tr);
+}
+.formula-card:hover {
+    border-color: rgba(0, 212, 255, 0.4);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), var(--accent-glow);
+    transform: translateY(-3px);
+}
+.formula-card .fc-title {
+    font-family: var(--ff-display);
+    font-size: 0.62rem;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+.formula-card .fc-math {
+    background: rgba(0, 212, 255, 0.05);
+    border: 1px solid rgba(0, 212, 255, 0.1);
+    border-radius: var(--rad-xs);
+    padding: 12px 8px;
+    margin-bottom: 12px;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.formula-card .fc-desc {
+    font-size: 0.84rem;
+    color: var(--text2);
+    line-height: 1.45;
+}
+
+/* --- Understanding Regions Section --- */
+.regions-section {
+    max-width: 1200px;
+    margin: 0 auto 80px;
+    padding: 0 28px;
+}
+.region-info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+.region-info-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-glow);
+    border-radius: var(--rad);
+    padding: 28px 24px;
+    transition: var(--tr);
+    position: relative;
+    overflow: hidden;
+}
+.region-info-card:hover {
+    border-color: rgba(0, 212, 255, 0.4);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35), var(--accent-glow);
+    transform: translateY(-3px);
+}
+.region-info-card .ric-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    margin-bottom: 16px;
+    transition: var(--tr);
+}
+.region-info-card:hover .ric-icon {
+    transform: scale(1.08);
+}
+.region-info-card.cutoff .ric-icon {
+    background: rgba(255, 23, 68, 0.12);
+    border: 1px solid rgba(255, 23, 68, 0.3);
+    color: var(--red);
+}
+.region-info-card.active-region .ric-icon {
+    background: rgba(0, 230, 118, 0.12);
+    border: 1px solid rgba(0, 230, 118, 0.3);
+    color: var(--green);
+}
+.region-info-card.saturation .ric-icon {
+    background: rgba(0, 212, 255, 0.12);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    color: var(--cyan);
+}
+.region-info-card .ric-title {
+    font-family: var(--ff-display);
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+.region-info-card.cutoff .ric-title { color: var(--red); }
+.region-info-card.active-region .ric-title { color: var(--green); }
+.region-info-card.saturation .ric-title { color: var(--cyan); }
+.region-info-card .ric-desc {
+    font-size: 0.92rem;
+    color: var(--text2);
+    line-height: 1.6;
+}
+
+/* --- Responsive --- */
+@media (max-width: 1024px) {
+    .formula-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+    .graph-canvas-wrap { height: 400px; }
+    .graph-slider-overlay {
+        position: relative;
+        top: auto; right: auto;
+        width: 100%;
+        border-radius: 0 0 var(--rad-sm) var(--rad-sm);
+        border-top: 1px solid var(--border-glow);
+    }
+    .legend-grid { grid-template-columns: 1fr; }
+    .formula-grid { grid-template-columns: 1fr; }
+    .region-info-grid { grid-template-columns: 1fr; }
+    .region-popup { min-width: 240px; max-width: 90%; font-size: 0.85rem; }
+    .graph-header { padding: 32px 16px 20px; }
+}
+@media (max-width: 480px) {
+    .graph-canvas-wrap { height: 320px; }
+    .graph-container { padding: 0 12px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ===== PAGE HEADER ===== -->
+<section class="graph-header anim-fade-in">
+    <h1 class="section-title">BJT CHARACTERISTICS GRAPH</h1>
+    <p class="section-subtitle">Interactive Visualization of NPN Transistor Operating Characteristics</p>
+</section>
+
+<!-- ===== GRAPH PANEL ===== -->
+<div class="graph-container anim-fade-in anim-delay-1">
+    <div class="graph-panel" id="graphPanel">
+
+        <!-- Region Transition Popup -->
+        <div class="region-popup" id="regionPopup">
+            <div class="popup-region-title" id="popupTitle"></div>
+            <div class="popup-region-msg" id="popupMsg"></div>
+        </div>
+
+        <!-- Canvas -->
+        <div class="graph-canvas-wrap" id="canvasWrap">
+            <canvas id="bjtCanvas"></canvas>
+        </div>
+
+        <!-- RB Slider Overlay (moves below canvas on mobile via CSS) -->
+        <div class="graph-slider-overlay" id="sliderOverlay">
+            <div class="slider-title">BASE RESISTANCE (R<sub>B</sub>)</div>
+            <div class="slider-value-display" id="rbValueDisplay" title="Click number to edit directly">
+                <span id="rbGraphNum" contenteditable="true" spellcheck="false" inputmode="numeric">1300</span> <span style="font-size:0.95rem;color:var(--text2);">Ω</span>
+            </div>
+            <div class="slider-hint">Drag slider or click number to type</div>
+            <input type="range" class="rb-slider" id="rbSlider"
+                   min="0" max="100000" value="1300" step="25">
+
+            <!-- Presets Bar (PS-37 Key Operating Points) -->
+            <div class="graph-presets">
+                <button type="button" class="preset-btn" data-rb="1300" title="PS-37 Deep Saturation: IB=2mA, Buzzer ON">DEEP SAT 1.3kΩ</button>
+                <button type="button" class="preset-btn" data-rb="2114" title="Buzzer ON/OFF Boundary Threshold">THRESH 2.1kΩ</button>
+                <button type="button" class="preset-btn" data-rb="5000" title="Active Region: Linear amplification">ACT 5kΩ</button>
+                <button type="button" class="preset-btn" data-rb="50000" title="Cut-off Region: Transistor OFF">CUT 50kΩ</button>
+            </div>
+
+            <!-- Live Telemetry Grid -->
+            <div class="graph-telemetry">
+                <div class="tele-item">
+                    <span class="tele-lbl">I<sub>B</sub>:</span>
+                    <span class="tele-val" id="gIb">2.00 mA</span>
+                </div>
+                <div class="tele-item">
+                    <span class="tele-lbl">I<sub>C</sub>:</span>
+                    <span class="tele-val" id="gIc">98.3 mA</span>
+                </div>
+                <div class="tele-item">
+                    <span class="tele-lbl">V<sub>CE</sub>:</span>
+                    <span class="tele-val" id="gVce">0.20 V</span>
+                </div>
+                <div class="tele-item">
+                    <span class="tele-lbl">REGION:</span>
+                    <span class="tele-val reg-tag saturation" id="gRegion">SAT</span>
+                </div>
+                <div class="tele-item full-width">
+                    <span class="tele-lbl">DOORBELL BUZZER:</span>
+                    <span class="tele-val buzzer-tag on" id="gBuzzer">ACTIVE (ON)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== LEGEND (PHYSICAL OPERATING REGIONS) ===== -->
+<div class="legend-section anim-fade-in anim-delay-2">
+    <div class="legend-grid">
+        <div class="legend-card saturation-card" id="legendSaturation">
+            <div class="legend-dot cyan"></div>
+            <div class="legend-info">
+                <div class="legend-label">SATURATION REGION (V<sub>CE</sub> &le; 0.40 V)</div>
+                <div class="legend-desc">Closed switch mode. R<sub>B</sub> &le; 2.15 kΩ, I<sub>C</sub> &approx; 97–100 mA. <strong>Doorbell Buzzer: ON ⚡</strong></div>
+            </div>
+        </div>
+        <div class="legend-card active-card" id="legendActive">
+            <div class="legend-dot green"></div>
+            <div class="legend-info">
+                <div class="legend-label">ACTIVE REGION (0.40 V &lt; V<sub>CE</sub> &lt; 11.5 V)</div>
+                <div class="legend-desc">Linear amplifier mode (I<sub>C</sub> = β·I<sub>B</sub>). Current below rated 100 mA threshold. <strong>Buzzer: OFF ⭕</strong></div>
+            </div>
+        </div>
+        <div class="legend-card cutoff-card" id="legendCutoff">
+            <div class="legend-dot red"></div>
+            <div class="legend-info">
+                <div class="legend-label">CUT-OFF REGION (V<sub>CE</sub> &ge; 11.5 V)</div>
+                <div class="legend-desc">Open switch mode. Base starved (R<sub>B</sub> &ge; 50 kΩ), I<sub>C</sub> &approx; 0 mA, V<sub>CE</sub> &approx; 12 V. <strong>Buzzer: OFF ⭕</strong></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== FORMULA REFERENCES ===== -->
+<div class="formulas-section anim-fade-in anim-delay-3">
+    <h2 class="section-title mb-3">FORMULA REFERENCES</h2>
+    <div class="formula-grid">
+        <div class="formula-card">
+            <div class="fc-title">Base Current</div>
+            <div class="fc-math">\( I_B = \dfrac{V_{SENSOR} - V_{BE}}{R_B} \)</div>
+            <div class="fc-desc">Current flowing into the transistor base</div>
+        </div>
+        <div class="formula-card">
+            <div class="fc-title">Collector Current</div>
+            <div class="fc-math">\( I_C = \beta \times I_B \)</div>
+            <div class="fc-desc">Current flowing through the collector-emitter path</div>
+        </div>
+        <div class="formula-card">
+            <div class="fc-title">Saturation Current</div>
+            <div class="fc-math">\( I_{C(sat)} \approx \dfrac{V_{CC} - V_{CE(sat)}}{R_L} \)</div>
+            <div class="fc-desc">Maximum collector current in saturation (~98.3 mA)</div>
+        </div>
+        <div class="formula-card">
+            <div class="fc-title">Power Dissipation</div>
+            <div class="fc-math">\( P_D = V_{CE} \times I_C \)</div>
+            <div class="fc-desc">Power converted to heat in the transistor</div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== UNDERSTANDING BJT OPERATING REGIONS ===== -->
+<div class="regions-section anim-fade-in anim-delay-4">
+    <h2 class="section-title mb-3">EXACT CRITERIA FOR BJT OPERATING REGIONS</h2>
+    <div class="region-info-grid">
+        <div class="region-info-card saturation">
+            <div class="ric-icon"><i class="fas fa-bolt"></i></div>
+            <div class="ric-title">SATURATION REGION (V<sub>CE</sub> &le; 0.40 V)</div>
+            <div class="ric-desc">
+                <strong>Boundary:</strong> V<sub>CE</sub> &le; 0.40 V, R<sub>B</sub> &le; 2.15 kΩ (PS-37 Deep Saturation: V<sub>CE</sub> &le; 0.20 V at R<sub>B</sub> = 1.3 kΩ).<br>
+                <strong>Junction State:</strong> Both E-B and C-B junctions are forward-biased.<br>
+                <strong>Device Behavior:</strong> Acts as a closed switch (R<sub>ON</sub> &approx; 2 Ω). Collector current is clamped by the load to maximum (~97–100 mA).<br>
+                <strong>Buzzer Output:</strong> <span style="color:var(--green);font-weight:700;">FULLY ACTIVE (ON ⚡)</span>.
+            </div>
+        </div>
+        <div class="region-info-card active-region">
+            <div class="ric-icon"><i class="fas fa-wave-square"></i></div>
+            <div class="ric-title">ACTIVE REGION (0.40 V &lt; V<sub>CE</sub> &lt; 11.5 V)</div>
+            <div class="ric-desc">
+                <strong>Boundary:</strong> 0.40 V &lt; V<sub>CE</sub> &lt; 11.5 V, 2.15 kΩ &lt; R<sub>B</sub> &lt; 50 kΩ.<br>
+                <strong>Junction State:</strong> E-B junction forward-biased, C-B junction reverse-biased.<br>
+                <strong>Device Behavior:</strong> Operates as a linear current amplifier (I<sub>C</sub> = β·I<sub>B</sub>). Collector current is proportional to base drive.<br>
+                <strong>Buzzer Output:</strong> <span style="color:var(--red);font-weight:700;">INACTIVE (OFF ⭕)</span> — Current is below the rated 100 mA buzzer threshold.
+            </div>
+        </div>
+        <div class="region-info-card cutoff">
+            <div class="ric-icon"><i class="fas fa-power-off"></i></div>
+            <div class="ric-title">CUT-OFF REGION (V<sub>CE</sub> &ge; 11.5 V)</div>
+            <div class="ric-desc">
+                <strong>Boundary:</strong> V<sub>CE</sub> &ge; 11.5 V, R<sub>B</sub> &ge; 50 kΩ or Sensor Signal = 0 V.<br>
+                <strong>Junction State:</strong> Both junctions are reverse-biased.<br>
+                <strong>Device Behavior:</strong> Acts as an open switch. Base current I<sub>B</sub> &approx; 0, collector leakage I<sub>C</sub> &approx; 0, and V<sub>CE</sub> &approx; V<sub>CC</sub> (12 V).<br>
+                <strong>Buzzer Output:</strong> <span style="color:var(--red);font-weight:700;">INACTIVE (OFF ⭕)</span>.
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/graph.js') }}"></script>
+{% endblock %}

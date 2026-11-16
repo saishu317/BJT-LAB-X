@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BJT LABX{% block title_suffix %} – Interactive BJT Analysis{% endblock %}</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- KaTeX Math Rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+    <!-- Animated circuit-board background layer -->
+    <div class="bg-circuit-layer" aria-hidden="true"></div>
+
+    <!-- ===== HEADER ===== -->
+    <header class="site-header" id="siteHeader">
+        <div class="header-inner">
+            <!-- Logo – top right per spec, but visually left for UX; 
+                 the CSS grid places the logo area on the right -->
+            <a href="/" class="logo-link" aria-label="BJT LABX Home">
+                <span class="logo">BJT&nbsp;LAB<span class="x">X</span></span>
+            </a>
+
+            <!-- Mobile hamburger -->
+            <button class="hamburger" id="hamburger" aria-label="Toggle navigation" aria-expanded="false">
+                <span></span><span></span><span></span>
+            </button>
+
+            <!-- Navigation -->
+            <nav class="main-nav" id="mainNav" role="navigation" aria-label="Primary">
+                <a href="/"             class="nav-link {% if active_page=='home' %}active{% endif %}"><i class="fas fa-home"></i><span>Home</span></a>
+                <a href="/circuit"      class="nav-link {% if active_page=='circuit' %}active{% endif %}"><i class="fas fa-microchip"></i><span>Circuit Diagram</span></a>
+                <a href="/calculations" class="nav-link {% if active_page=='calculations' %}active{% endif %}"><i class="fas fa-square-root-variable"></i><span>Calculations</span></a>
+                <a href="/graph"        class="nav-link {% if active_page=='graph' %}active{% endif %}"><i class="fas fa-chart-line"></i><span>Graph</span></a>
+                <a href="/about"        class="nav-link {% if active_page=='about' %}active{% endif %}"><i class="fas fa-info-circle"></i><span>About</span></a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- ===== MAIN ===== -->
+    <main class="main-content" id="mainContent">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- ===== SHARED SCRIPTS ===== -->
+    <script src="{{ url_for('static', filename='js/shared.js') }}"></script>
+    <script>
+        /* Mobile menu toggle */
+        (function(){
+            const btn = document.getElementById('hamburger');
+            const nav = document.getElementById('mainNav');
+            btn.addEventListener('click', function(){
+                const open = nav.classList.toggle('open');
+                btn.classList.toggle('active', open);
+                btn.setAttribute('aria-expanded', open);
+            });
+            /* Close menu on link click (mobile) */
+            nav.querySelectorAll('.nav-link').forEach(function(a){
+                a.addEventListener('click', function(){
+                    nav.classList.remove('open');
+                    btn.classList.remove('active');
+                    btn.setAttribute('aria-expanded', 'false');
+                });
+            });
+        })();
+
+        /* KaTeX auto-render once loaded */
+        document.addEventListener('DOMContentLoaded', function(){
+            if(typeof renderMathInElement === 'function'){
+                renderMathInElement(document.body, {
+                    delimiters:[
+                        {left:'$$',right:'$$',display:true},
+                        {left:'\\[',right:'\\]',display:true},
+                        {left:'\\(',right:'\\)',display:false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+

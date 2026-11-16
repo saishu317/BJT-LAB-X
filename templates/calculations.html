@@ -1,0 +1,1362 @@
+{% extends 'base.html' %}
+
+{% block title_suffix %} – Calculations{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ===== Calculations Page Styles ===== */
+
+/* --- Header Section --- */
+.calc-page-header {
+    text-align: center;
+    padding: 60px 28px 40px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+.calc-page-header .page-title {
+    font-family: var(--ff-display);
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: 3px;
+    background: linear-gradient(135deg, #fff, var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+}
+.calc-page-header .page-subtitle {
+    font-family: var(--ff-display);
+    font-size: .85rem;
+    letter-spacing: 2px;
+    color: var(--text2);
+    margin-bottom: 20px;
+}
+.calc-page-header .page-intro {
+    font-size: 1rem;
+    color: var(--text2);
+    line-height: 1.7;
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+/* --- Parameter Bar --- */
+.params-bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
+    max-width: 1100px;
+    margin: 0 auto 56px;
+    padding: 0 28px;
+}
+.param-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-glow);
+    border-radius: var(--rad-sm);
+    backdrop-filter: blur(8px);
+    transition: var(--tr);
+    white-space: nowrap;
+}
+.param-chip:hover {
+    border-color: rgba(0, 212, 255, .4);
+    box-shadow: 0 0 14px rgba(0, 212, 255, .12);
+}
+.param-chip .pc-name {
+    font-family: var(--ff-display);
+    font-size: .65rem;
+    letter-spacing: 1.5px;
+    color: var(--text2);
+    text-transform: uppercase;
+}
+.param-chip .pc-value {
+    font-family: var(--ff-mono);
+    font-size: 1.05rem;
+    color: var(--accent);
+}
+
+/* --- Calc Sections: accent left borders --- */
+#calc-rb  { border-left: 4px solid var(--cyan); }
+#calc-ib  { border-left: 4px solid var(--blue); }
+#calc-ic  { border-left: 4px solid var(--purple); }
+#calc-pd  { border-left: 4px solid var(--orange); }
+#calc-diode { border-left: 4px solid var(--yellow); }
+
+/* --- Calc section number badge --- */
+.calc-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-family: var(--ff-display);
+    font-size: .8rem;
+    font-weight: 700;
+    margin-right: 12px;
+    color: #fff;
+    flex-shrink: 0;
+}
+#calc-rb .calc-number { background: linear-gradient(135deg, var(--cyan), var(--accent2)); }
+#calc-ib .calc-number { background: linear-gradient(135deg, var(--blue), #5c6bc0); }
+#calc-ic .calc-number { background: linear-gradient(135deg, var(--purple), #b388ff); }
+#calc-pd .calc-number { background: linear-gradient(135deg, var(--orange), var(--yellow)); }
+#calc-diode .calc-number { background: linear-gradient(135deg, var(--yellow), #ff9100); }
+
+.calc-title-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* --- Formula box glow --- */
+.calc-formula-box {
+    position: relative;
+    overflow: hidden;
+}
+.calc-formula-box::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(0, 212, 255, .08), transparent, rgba(41, 121, 255, .06));
+    z-index: -1;
+}
+
+/* --- Step-by-step lines --- */
+.calc-steps {
+    margin: 20px 0;
+    padding: 0;
+}
+.calc-step {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border-dim);
+    transition: background .2s ease;
+}
+.calc-step:last-child {
+    border-bottom: none;
+}
+.calc-step:hover {
+    background: rgba(0, 212, 255, .03);
+}
+.calc-step .step-label {
+    font-family: var(--ff-display);
+    font-size: .6rem;
+    letter-spacing: 1.5px;
+    color: var(--text3);
+    text-transform: uppercase;
+    min-width: 60px;
+    flex-shrink: 0;
+}
+.calc-step .step-math {
+    font-family: var(--ff-mono);
+    font-size: .95rem;
+    color: var(--text);
+}
+
+/* --- Variable definitions grid --- */
+.var-defs {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 10px;
+    margin: 16px 0;
+}
+.var-def {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(0, 212, 255, .03);
+    border-radius: var(--rad-xs);
+    border-left: 2px solid var(--border-glow);
+}
+.var-def .vd-symbol {
+    font-family: var(--ff-mono);
+    font-size: .9rem;
+    color: var(--accent);
+    min-width: 70px;
+    flex-shrink: 0;
+}
+.var-def .vd-desc {
+    font-size: .85rem;
+    color: var(--text2);
+}
+
+/* --- Result boxes --- */
+.calc-result {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 28px;
+    border-radius: var(--rad-sm);
+    background: rgba(0, 230, 118, .08);
+    border: 1px solid rgba(0, 230, 118, .25);
+    font-family: var(--ff-mono);
+    font-size: 1.15rem;
+    color: var(--green);
+    margin-top: 14px;
+}
+.calc-result i {
+    font-size: .9rem;
+}
+.calc-result.warning {
+    background: rgba(255, 23, 68, .08);
+    border-color: rgba(255, 23, 68, .3);
+    color: var(--red);
+}
+
+/* --- Region badge inline --- */
+.region-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-family: var(--ff-display);
+    font-size: .65rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+.region-badge.saturation {
+    background: rgba(0, 230, 118, .10);
+    border: 1px solid rgba(0, 230, 118, .3);
+    color: var(--green);
+}
+.region-badge.active-region {
+    background: rgba(0, 212, 255, .10);
+    border: 1px solid rgba(0, 212, 255, .3);
+    color: var(--accent);
+}
+
+/* --- Power rating bar --- */
+.power-bar-wrap {
+    margin: 16px 0;
+}
+.power-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--ff-mono);
+    font-size: .8rem;
+    color: var(--text2);
+    margin-bottom: 6px;
+}
+.power-bar {
+    width: 100%;
+    height: 10px;
+    background: var(--bg3);
+    border-radius: 5px;
+    overflow: hidden;
+    position: relative;
+}
+.power-bar-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width .5s var(--ease), background .3s ease;
+    min-width: 2px;
+}
+.power-bar-fill.safe {
+    background: linear-gradient(90deg, var(--green), var(--accent));
+}
+.power-bar-fill.danger {
+    background: linear-gradient(90deg, var(--orange), var(--red));
+}
+
+/* --- Separator --- */
+.calc-separator {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border-glow), transparent);
+    margin: 12px 0 36px;
+}
+
+/* --- Highlight animation --- */
+.calc-section.highlight {
+    animation: sectionGlow 3s ease-out forwards;
+}
+@keyframes sectionGlow {
+    0%   { border-color: var(--accent); box-shadow: 0 0 40px rgba(0, 212, 255, .3); }
+    100% { border-color: var(--border-glow); box-shadow: none; }
+}
+
+/* --- Scroll-triggered fade-in --- */
+.calc-section {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity .6s var(--ease), transform .6s var(--ease), border-color .3s ease, box-shadow .3s ease;
+}
+.calc-section.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* --- Diode Benchmark & Comparison Box --- */
+.diode-benchmark-box {
+    margin-top: 28px;
+    background: rgba(8, 14, 28, 0.65);
+    border: 1px solid rgba(0, 212, 255, 0.25);
+    border-radius: var(--rad-sm);
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+}
+.diode-benchmark-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--green), var(--accent), var(--red));
+}
+.diode-bench-title {
+    font-family: var(--ff-display);
+    font-size: 0.88rem;
+    letter-spacing: 2px;
+    color: var(--text);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+.diode-bench-subtitle {
+    font-size: 0.82rem;
+    color: var(--text2);
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+.diode-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.diode-card {
+    background: rgba(14, 22, 40, 0.6);
+    border-radius: var(--rad-xs);
+    padding: 18px 16px;
+    border: 1px solid var(--border-glow);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.diode-card:hover {
+    transform: translateY(-3px);
+}
+.diode-card.card-works {
+    border-color: rgba(0, 230, 118, 0.45);
+    background: linear-gradient(180deg, rgba(0, 230, 118, 0.06) 0%, rgba(14, 22, 40, 0.7) 100%);
+    box-shadow: 0 4px 20px rgba(0, 230, 118, 0.08);
+}
+.diode-card.card-works:hover {
+    border-color: var(--green);
+    box-shadow: 0 6px 24px rgba(0, 230, 118, 0.25);
+}
+.diode-card.card-fails {
+    border-color: rgba(255, 23, 68, 0.35);
+    background: linear-gradient(180deg, rgba(255, 23, 68, 0.05) 0%, rgba(14, 22, 40, 0.7) 100%);
+    box-shadow: 0 4px 20px rgba(255, 23, 68, 0.06);
+}
+.diode-card.card-fails:hover {
+    border-color: var(--red);
+    box-shadow: 0 6px 24px rgba(255, 23, 68, 0.2);
+}
+
+.diode-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-dim);
+}
+.diode-name {
+    font-family: var(--ff-display);
+    font-size: 1.05rem;
+    letter-spacing: 1.5px;
+    color: #fff;
+}
+.diode-category {
+    font-size: 0.72rem;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+}
+.diode-badge {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-family: var(--ff-display);
+    font-size: 0.62rem;
+    letter-spacing: 1px;
+    font-weight: 700;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.diode-badge.works {
+    background: rgba(0, 230, 118, 0.18);
+    color: var(--green);
+    border: 1px solid rgba(0, 230, 118, 0.4);
+}
+.diode-badge.fails {
+    background: rgba(255, 23, 68, 0.18);
+    color: var(--red);
+    border: 1px solid rgba(255, 23, 68, 0.4);
+}
+
+.diode-specs-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 14px 0;
+    font-family: var(--ff-mono);
+    font-size: 0.8rem;
+}
+.diode-specs-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px dashed rgba(228, 234, 246, 0.08);
+}
+.diode-specs-list li:last-child {
+    border-bottom: none;
+}
+.spec-key {
+    color: var(--text2);
+    font-size: 0.75rem;
+}
+.spec-val {
+    color: #fff;
+    font-weight: 600;
+}
+.spec-tag {
+    font-size: 0.65rem;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-left: 6px;
+}
+.spec-tag.pass { background: rgba(0, 230, 118, 0.2); color: var(--green); }
+.spec-tag.fail { background: rgba(255, 23, 68, 0.2); color: var(--red); }
+
+.diode-verdict-box {
+    margin-top: auto;
+    background: rgba(5, 9, 18, 0.6);
+    border-radius: 4px;
+    padding: 10px 12px;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    border-left: 3px solid;
+}
+.card-works .diode-verdict-box {
+    border-left-color: var(--green);
+    color: var(--text);
+}
+.card-fails .diode-verdict-box {
+    border-left-color: var(--red);
+    color: var(--text2);
+}
+.verdict-heading {
+    font-family: var(--ff-display);
+    font-size: 0.68rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.card-works .verdict-heading { color: var(--green); }
+.card-fails .verdict-heading { color: var(--red); }
+
+/* Diode Comparison Table */
+.diode-table-wrap {
+    overflow-x: auto;
+    margin-top: 16px;
+    border: 1px solid var(--border-dim);
+    border-radius: var(--rad-xs);
+    background: rgba(5, 9, 18, 0.5);
+}
+.diode-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    text-align: left;
+}
+.diode-table th, .diode-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-dim);
+}
+.diode-table th {
+    font-family: var(--ff-display);
+    font-size: 0.68rem;
+    letter-spacing: 1px;
+    color: var(--text2);
+    text-transform: uppercase;
+    background: rgba(14, 22, 40, 0.7);
+}
+.diode-table td {
+    font-family: var(--ff-mono);
+    color: var(--text);
+}
+.diode-table tr:hover td {
+    background: rgba(0, 212, 255, 0.03);
+}
+.diode-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* --- Sub-menu Bar for Flyback Diodes --- */
+.diode-submenu-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+    background: rgba(5, 9, 18, 0.6);
+    padding: 6px;
+    border-radius: var(--rad-xs);
+    border: 1px solid var(--border-dim);
+}
+.diode-sub-btn {
+    flex: 1;
+    min-width: 140px;
+    padding: 10px 14px;
+    border-radius: 5px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text2);
+    font-family: var(--ff-display);
+    font-size: 0.72rem;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    outline: none;
+}
+.diode-sub-btn:hover {
+    color: #fff;
+    background: rgba(0, 212, 255, 0.08);
+}
+.diode-sub-btn.active.btn-works {
+    background: rgba(0, 230, 118, 0.16);
+    border-color: rgba(0, 230, 118, 0.5);
+    color: var(--green);
+    box-shadow: 0 0 16px rgba(0, 230, 118, 0.22);
+}
+.diode-sub-btn.active.btn-fails {
+    background: rgba(255, 23, 68, 0.16);
+    border-color: rgba(255, 23, 68, 0.5);
+    color: var(--red);
+    box-shadow: 0 0 16px rgba(255, 23, 68, 0.22);
+}
+.diode-sub-btn.active.btn-all {
+    background: rgba(0, 212, 255, 0.16);
+    border-color: rgba(0, 212, 255, 0.5);
+    color: var(--accent);
+    box-shadow: 0 0 16px rgba(0, 212, 255, 0.22);
+}
+
+/* Diode Sub-panel display */
+.diode-sub-panel {
+    display: none;
+}
+.diode-sub-panel.active {
+    display: block;
+    animation: subPanelFadeIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+@keyframes subPanelFadeIn {
+    0% { opacity: 0; transform: translateY(6px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+.diode-column-card {
+    background: rgba(14, 22, 40, 0.6);
+    border: 1px solid var(--border-glow);
+    border-radius: var(--rad-xs);
+    padding: 20px 22px;
+    margin-bottom: 20px;
+}
+.diode-column-card.card-works {
+    border-color: rgba(0, 230, 118, 0.45);
+    background: linear-gradient(180deg, rgba(0, 230, 118, 0.06) 0%, rgba(14, 22, 40, 0.7) 100%);
+    box-shadow: 0 4px 20px rgba(0, 230, 118, 0.08);
+}
+.diode-column-card.card-fails {
+    border-color: rgba(255, 23, 68, 0.35);
+    background: linear-gradient(180deg, rgba(255, 23, 68, 0.05) 0%, rgba(14, 22, 40, 0.7) 100%);
+    box-shadow: 0 4px 20px rgba(255, 23, 68, 0.06);
+}
+
+.sub-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-dim);
+}
+.sub-panel-title {
+    font-family: var(--ff-display);
+    font-size: 1.15rem;
+    letter-spacing: 1.5px;
+    color: #fff;
+    margin: 0;
+}
+.sub-panel-subtitle {
+    font-size: 0.75rem;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 3px;
+}
+
+/* --- Responsive --- */
+@media (max-width: 900px) {
+    .diode-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+    .calc-page-header .page-title { font-size: 1.5rem; letter-spacing: 2px; }
+    .calc-page-header .page-subtitle { font-size: .7rem; }
+    .params-bar { gap: 8px; }
+    .param-chip { padding: 8px 12px; }
+    .param-chip .pc-value { font-size: .9rem; }
+    .calc-section { padding: 24px 18px; }
+    .var-defs { grid-template-columns: 1fr; }
+    .calc-step { flex-direction: column; gap: 4px; padding: 8px 12px; }
+    .calc-step .step-label { min-width: unset; }
+}
+@media (max-width: 480px) {
+    .calc-page-header .page-title { font-size: 1.2rem; }
+    .calc-result { font-size: .95rem; padding: 10px 18px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ===== HEADER SECTION ===== -->
+<div class="calc-page-header anim-fade-in">
+    <h1 class="page-title">BJT CIRCUIT CALCULATIONS</h1>
+    <p class="page-subtitle">Mathematical Analysis of a 12V BJT-Based Electronic Buzzer Driver</p>
+    <p class="page-intro">
+        This page presents a complete step-by-step mathematical analysis of the NPN transistor
+        (2N2222) buzzer driver circuit. Each calculation dynamically updates based on the base
+        resistance (R<sub>B</sub>) value set on the Circuit Diagram page, providing real-time
+        insight into how component values affect circuit behavior.
+    </p>
+</div>
+
+<!-- ===== SIMULATION PARAMETERS ===== -->
+<div class="params-bar anim-fade-in anim-delay-1">
+    <div class="param-chip">
+        <span class="pc-name">V<sub>CC</sub></span>
+        <span class="pc-value">12V</span>
+    </div>
+    <div class="param-chip">
+        <span class="pc-name">β (Min Gain)</span>
+        <span class="pc-value">80</span>
+    </div>
+    <div class="param-chip">
+        <span class="pc-name">V<sub>BE</sub></span>
+        <span class="pc-value">0.7V</span>
+    </div>
+    <div class="param-chip">
+        <span class="pc-name">V<sub>SENSOR</sub></span>
+        <span class="pc-value">3.3V (2mA)</span>
+    </div>
+    <div class="param-chip">
+        <span class="pc-name">V<sub>CE(sat)</sub></span>
+        <span class="pc-value">0.2V</span>
+    </div>
+    <div class="param-chip">
+        <span class="pc-name">R<sub>L</sub> (Buzzer)</span>
+        <span class="pc-value">120Ω (100mA)</span>
+    </div>
+    <div class="param-chip">
+        <span class="pc-name">Flyback Diode</span>
+        <span class="pc-value">1N4001</span>
+    </div>
+</div>
+
+<!-- ===== CALCULATIONS CONTAINER ===== -->
+<div class="section" style="padding-top: 0;">
+
+    <!-- ============================== -->
+    <!-- CALC 1: BASE RESISTANCE (RB)   -->
+    <!-- ============================== -->
+    <section class="calc-section" id="calc-rb">
+        <div class="calc-title-row">
+            <span class="calc-number">1</span>
+            <h2 class="calc-title" style="margin-bottom:0;">Base Resistance (R<sub>B</sub>)</h2>
+        </div>
+
+        <!-- Primary formula -->
+        <div class="calc-formula-box">
+            \[ R_B = \frac{V_{SENSOR} - V_{BE}}{I_B} \]
+        </div>
+
+        <!-- Selected RB value -->
+        <div class="calc-result mt-2" id="rb-selected">
+            <i class="fas fa-sliders-h"></i>
+            Selected Base Resistance = <span id="rb-value-display">1300</span> Ω
+        </div>
+
+        <!-- Variable definitions -->
+        <div class="var-defs mt-3">
+            <div class="var-def">
+                <span class="vd-symbol">V<sub>SENSOR</sub></span>
+                <span class="vd-desc">Sensor output voltage (3.3V)</span>
+            </div>
+            <div class="var-def">
+                <span class="vd-symbol">V<sub>BE</sub></span>
+                <span class="vd-desc">Base-emitter voltage (0.7V)</span>
+            </div>
+            <div class="var-def">
+                <span class="vd-symbol">I<sub>B</sub></span>
+                <span class="vd-desc">Base current (max 2 mA)</span>
+            </div>
+            <div class="var-def">
+                <span class="vd-symbol">R<sub>B</sub></span>
+                <span class="vd-desc">Base resistance (Ω)</span>
+            </div>
+        </div>
+
+        <!-- Substitution with actual values -->
+        <div class="calc-steps mt-3" id="rb-steps">
+            <div class="calc-step">
+                <span class="step-label">Given</span>
+                <span class="step-math">V<sub>SENSOR</sub> = 3.3V, &nbsp; V<sub>BE</sub> = 0.7V, &nbsp; R<sub>B</sub> = <span class="rb-val">1300</span> Ω</span>
+            </div>
+            <div class="calc-step">
+                <span class="step-label">Formula</span>
+                <span class="step-math">R<sub>B</sub> = (V<sub>SENSOR</sub> − V<sub>BE</sub>) / I<sub>B</sub> = (3.3 − 0.7) / I<sub>B</sub> = 2.6 / I<sub>B</sub></span>
+            </div>
+            <div class="calc-step">
+                <span class="step-label">Solve</span>
+                <span class="step-math">I<sub>B</sub> = 2.6 / <span class="rb-val">1300</span> = <span id="rb-ib-preview">2.00</span> mA</span>
+            </div>
+            <div class="calc-step" style="background:rgba(0,212,255,0.05);">
+                <span class="step-label">Design</span>
+                <span class="step-math"><strong>Deep Saturation:</strong> R<sub>B(design)</sub> = 2.6V / 2mA = <strong>1.3 kΩ</strong> (Overdrive = 1.63&times;). <strong>Threshold:</strong> R<sub>B(thresh)</sub> = 2.6V / 1.23mA = <strong>2.11 kΩ</strong>.</span>
+            </div>
+        </div>
+
+        <!-- Explanation -->
+        <div class="calc-explanation">
+            <i class="fas fa-info-circle text-accent"></i>&nbsp;
+            Per <strong>PS-37 specifications</strong>, the input sensor delivers 2 mA at 3.3 V. To guarantee deep saturation
+            (V<sub>CE,sat</sub> &le; 0.2 V) while staying strictly within the sensor's 2 mA output rating, the optimal base resistor
+            is selected as <strong>R<sub>B</sub> = 1.3 kΩ</strong>.
+        </div>
+    </section>
+
+    <div class="calc-separator"></div>
+
+    <!-- ============================== -->
+    <!-- CALC 2: BASE CURRENT (IB)      -->
+    <!-- ============================== -->
+    <section class="calc-section" id="calc-ib">
+        <div class="calc-title-row">
+            <span class="calc-number">2</span>
+            <h2 class="calc-title" style="margin-bottom:0;">Base Current (I<sub>B</sub>)</h2>
+        </div>
+
+        <!-- Primary formula -->
+        <div class="calc-formula-box">
+            \[ I_B = \frac{V_{SENSOR} - V_{BE}}{R_B} \]
+        </div>
+
+        <!-- Step-by-step substitution -->
+        <div class="calc-steps" id="ib-steps">
+            <div class="calc-step">
+                <span class="step-label">Step 1</span>
+                <span class="step-math">I<sub>B</sub> = (V<sub>SENSOR</sub> − V<sub>BE</sub>) / R<sub>B</sub></span>
+            </div>
+            <div class="calc-step">
+                <span class="step-label">Step 2</span>
+                <span class="step-math">I<sub>B</sub> = (3.3 − 0.7) / <span class="rb-val">1300</span></span>
+            </div>
+            <div class="calc-step">
+                <span class="step-label">Step 3</span>
+                <span class="step-math">I<sub>B</sub> = 2.6 / <span class="rb-val">1300</span></span>
+            </div>
+            <div class="calc-step">
+                <span class="step-label">Step 4</span>
+                <span class="step-math">I<sub>B</sub> = <span id="ib-amps">0.00200</span> A</span>
+            </div>
+            <div class="calc-step">
+                <span class="step-label">Result</span>
+                <span class="step-math" style="color: var(--green);">I<sub>B</sub> = <span id="ib-milliamps">2.00</span> mA</span>
+            </div>
+        </div>
+
+        <!-- Final result -->
+        <div class="calc-result" id="ib-result">
+            <i class="fas fa-bolt"></i>
+            I<sub>B</sub> = <span id="ib-final">2.00</span> mA
+        </div>
+
+        <!-- Explanation -->
+        <div class="calc-explanation">
+            <i class="fas fa-info-circle text-accent"></i>&nbsp;
+            Base current flows into the base terminal from the 3.3V sensor. At R<sub>B</sub> = 1.3 kΩ, I<sub>B</sub> = 2.00 mA,
+            which fully utilizes the sensor's rated 2 mA drive capability and guarantees the BJT is firmly pushed into saturation.
+        </div>
+    </section>
+
+    <div class="calc-separator"></div>
+
+    <!-- ============================== -->
+    <!-- CALC 3: COLLECTOR CURRENT (IC)  -->
+    <!-- ============================== -->
+    <section class="calc-section" id="calc-ic">
+        <div class="calc-title-row">
+            <span class="calc-number">3</span>
+            <h2 class="calc-title" style="margin-bottom:0;">Collector Current (I<sub>C</sub>)</h2>
+        </div>
+
+        <!-- Primary formula -->
+        <div class="calc-formula-box">
+            \[ I_C = \min(\beta \times I_B,\; I_{C(sat)}) \]
+        </div>
+
+        <!-- Step-by-step: Theoretical IC -->
+        <h3 style="font-family:var(--ff-display);font-size:.75rem;letter-spacing:2px;color:var(--text2);margin:20px 0 8px;text-transform:uppercase;">
+            <i class="fas fa-calculator"></i>&nbsp; Theoretical Current (β = 80)
+        </h3>
+        <div class="calc-steps" id="ic-theory-steps">
+            <div class="calc-step">
+                <span class="step-label">Step 1</span>
+                <span class="step-math">I<sub>C(theoretical)</sub> = β × I<sub>B</sub></span>
+            </div>
+            <div class="calc-step">
+                <span class="step-label">Step 2</span>
+                <span class="step-math">I<sub>C(theoretical)</sub> = 80 × <span id="ic-ib-val">0.00200</span> A</span>
+            </div>
+            <div class="calc-step">
+                <span class="step-label">Result</span>
+                <span class="step-math">I<sub>C(theoretical)</sub> = <span id="ic-theory-a">0.160</span> A = <span id="ic-theory-ma">160.00</span> mA</span>
+            </div>
+        </div>
+
+        <!-- Saturation check -->
+        <h3 style="font-family:var(--ff-display);font-size:.75rem;letter-spacing:2px;color:var(--text2);margin:24px 0 8px;text-transform:uppercase;">
+            <i class="fas fa-shield-alt"></i>&nbsp; Doorbell Buzzer Saturation Limit (R<sub>L</sub> = 120 Ω)
+        </h3>
+        <div class="calc-steps" id="ic-sat-steps">
+            <div class="calc-step">
+                <span class="step-label">Formula</span>
+                <span class="step-math">I<sub>C(sat)</sub> = (V<sub>CC</sub> − V<sub>CE(sat)</sub>) / R<sub>L</sub></span>
+            </div>
+            <div class="calc-step">
+                <span class="step-label">Solve</span>
+                <span class="step-math">I<sub>C(sat)</sub> = (12 − 0.2) / 120 = 11.8 / 120</span>
+            </div>
+            <div class="calc-step">
+                <span class="step-label">Result</span>
+                <span class="step-math">I<sub>C(sat)</sub> = 0.0983 A = 98.33 mA (&approx; 100 mA Rated Buzzer Load)</span>
+            </div>
+        </div>
+
+        <!-- Comparison -->
+        <div class="calc-steps mt-2" id="ic-compare">
+            <div class="calc-step" style="background: rgba(0,212,255,.04);">
+                <span class="step-label">Compare</span>
+                <span class="step-math" id="ic-compare-text">
+                    Since I<sub>C(theoretical)</sub> (160.00 mA) &gt; I<sub>C(sat)</sub> (98.33 mA),
+                    the transistor operates in <span class="region-badge saturation">SATURATION</span>
+                </span>
+            </div>
+            <div class="calc-step">
+                <span class="step-label">Actual</span>
+                <span class="step-math">I<sub>C</sub> = min(I<sub>C(theoretical)</sub>, I<sub>C(sat)</sub>) = <span id="ic-actual-val">98.33</span> mA</span>
+            </div>
+        </div>
+
+        <!-- Final result -->
+        <div class="calc-result" id="ic-result">
+            <i class="fas fa-bolt"></i>
+            I<sub>C</sub> = <span id="ic-final">98.33</span> mA
+        </div>
+
+        <!-- Explanation -->
+        <div class="calc-explanation">
+            <i class="fas fa-info-circle text-accent"></i>&nbsp;
+            The doorbell buzzer is rated at 100 mA at 12 V (equivalent resistance R<sub>L</sub> = 120 Ω). In saturation,
+            the transistor drives 98.33 mA (&approx; 100 mA) through the buzzer coil, fully activating the audible alert.
+        </div>
+    </section>
+
+    <div class="calc-separator"></div>
+
+    <!-- ============================== -->
+    <!-- CALC 4: POWER DISSIPATION (PD) -->
+    <!-- ============================== -->
+    <section class="calc-section" id="calc-pd">
+        <div class="calc-title-row">
+            <span class="calc-number">4</span>
+            <h2 class="calc-title" style="margin-bottom:0;">Power Dissipation (P<sub>D</sub>)</h2>
+        </div>
+
+        <!-- Primary formula -->
+        <div class="calc-formula-box">
+            \[ P_D = V_{CE} \times I_C \]
+        </div>
+
+        <!-- Determine VCE -->
+        <h3 style="font-family:var(--ff-display);font-size:.75rem;letter-spacing:2px;color:var(--text2);margin:20px 0 8px;text-transform:uppercase;">
+            <i class="fas fa-microchip"></i>&nbsp; Determining V<sub>CE</sub>
+        </h3>
+        <div class="calc-steps" id="pd-vce-steps">
+            <div class="calc-step" id="pd-vce-explain">
+                <span class="step-label">Region</span>
+                <span class="step-math">Transistor is in <span class="region-badge saturation" id="pd-region-badge">SATURATION</span></span>
+            </div>
+            <div class="calc-step" id="pd-vce-calc">
+                <span class="step-label">V<sub>CE</sub></span>
+                <span class="step-math" id="pd-vce-text">V<sub>CE</sub> = V<sub>CE(sat)</sub> = 0.2V</span>
+            </div>
+        </div>
+
+        <!-- Step-by-step PD -->
+        <h3 style="font-family:var(--ff-display);font-size:.75rem;letter-spacing:2px;color:var(--text2);margin:24px 0 8px;text-transform:uppercase;">
+            <i class="fas fa-fire"></i>&nbsp; Power Calculation
+        </h3>
+        <div class="calc-steps" id="pd-steps">
+            <div class="calc-step">
+                <span class="step-label">Step 1</span>
+                <span class="step-math">P<sub>D</sub> = V<sub>CE</sub> × I<sub>C</sub></span>
+            </div>
+            <div class="calc-step">
+                <span class="step-label">Step 2</span>
+                <span class="step-math">P<sub>D</sub> = <span id="pd-vce-val">0.20</span> V × <span id="pd-ic-val">0.0983</span> A</span>
+            </div>
+            <div class="calc-step">
+                <span class="step-label">Step 3</span>
+                <span class="step-math">P<sub>D</sub> = <span id="pd-watts">0.0197</span> W = <span id="pd-milliwatts">19.67</span> mW</span>
+            </div>
+        </div>
+
+        <!-- Power rating visual bar -->
+        <div class="power-bar-wrap mt-3">
+            <div class="power-bar-label">
+                <span>0 mW</span>
+                <span>P<sub>D</sub> = <span id="pd-bar-value">19.67</span> mW</span>
+                <span>625 mW (MAX 2N2222)</span>
+            </div>
+            <div class="power-bar">
+                <div class="power-bar-fill safe" id="pd-bar-fill" style="width: 3.15%;"></div>
+            </div>
+        </div>
+
+        <!-- Power rating status -->
+        <div class="calc-result mt-2" id="pd-status">
+            <i class="fas fa-check-circle"></i>
+            <span id="pd-status-text">WITHIN SAFE LIMITS ✓</span>
+            <span style="margin-left:8px;font-size:.85rem;color:var(--text2);">
+                (P<sub>D</sub> &approx; 19.7 mW &ll; 625 mW rating for TO-92 2N2222)
+            </span>
+        </div>
+
+        <!-- Final result -->
+        <div class="calc-result mt-2" id="pd-result">
+            <i class="fas fa-fire"></i>
+            P<sub>D</sub> = <span id="pd-final">19.67</span> mW
+        </div>
+
+        <!-- Explanation -->
+        <div class="calc-explanation">
+            <i class="fas fa-info-circle text-accent"></i>&nbsp;
+            In deep saturation (V<sub>CE</sub> = 0.2 V), the transistor dissipates only ~19.7 mW. Even in the worst-case active region
+            midpoint (V<sub>CE</sub> = 6 V, I<sub>C</sub> = 50 mA), maximum power dissipation is P<sub>D(max)</sub> = 300 mW, which
+            is safely below the 625 mW limit of the 2N2222.
+        </div>
+    </section>
+
+    <div class="calc-separator"></div>
+
+    <!-- ============================== -->
+    <!-- CALC 5: FLYBACK DIODE (PS-37)  -->
+    <!-- ============================== -->
+    <section class="calc-section" id="calc-diode">
+        <div class="calc-title-row">
+            <span class="calc-number">5</span>
+            <h2 class="calc-title" style="margin-bottom:0;">Flyback Diode Selection (1N4001)</h2>
+        </div>
+
+        <!-- Primary formula -->
+        <div class="calc-formula-box">
+            \[ V_{spike} = -L \frac{di}{dt}, \quad V_{clamp} = V_{CC} + V_F \approx 12.7\,\text{V} \]
+        </div>
+
+        <!-- Step-by-step Diode Selection -->
+        <h3 style="font-family:var(--ff-display);font-size:.75rem;letter-spacing:2px;color:var(--text2);margin:20px 0 8px;text-transform:uppercase;">
+            <i class="fas fa-shield-alt"></i>&nbsp; Inductive Kickback Protection Analysis
+        </h3>
+        <div class="calc-steps">
+            <div class="calc-step">
+                <span class="step-label">Problem</span>
+                <span class="step-math">Doorbell buzzers contain electromagnetic coils with high inductance (L). When the BJT rapidly switches OFF (di/dt &lt; 0), the coil generates a dangerous high-voltage inductive spike (V = -L di/dt) that easily exceeds the 2N2222 breakdown voltage (V<sub>CEO(max)</sub> = 40 V).</span>
+            </div>
+            <div class="calc-step">
+                <span class="step-label">Solution</span>
+                <span class="step-math">Connect a reverse-biased <strong>flyback diode (1N4001)</strong> in parallel across the buzzer coil.</span>
+            </div>
+            <div class="calc-step">
+                <span class="step-label">Rating 1</span>
+                <span class="step-math"><strong>Peak Reverse Voltage:</strong> V<sub>RRM</sub> &ge; V<sub>CC</sub> (12 V). 1N4001 provides V<sub>RRM</sub> = 50 V (> 4&times; safety factor).</span>
+            </div>
+            <div class="calc-step">
+                <span class="step-label">Rating 2</span>
+                <span class="step-math"><strong>Continuous Forward Current:</strong> I<sub>F(avg)</sub> &ge; I<sub>LOAD</sub> (100 mA). 1N4001 provides I<sub>F(avg)</sub> = 1.0 A (10&times; surge capability).</span>
+            </div>
+            <div class="calc-step">
+                <span class="step-label">Result</span>
+                <span class="step-math" style="color:var(--green);">Collector voltage is safely clamped to V<sub>C(clamp)</sub> = 12 V + 0.7 V = 12.7 V &ll; 40 V (Transistor Fully Protected ✓).</span>
+            </div>
+        </div>
+
+        <!-- Final result -->
+        <div class="calc-result" id="diode-result" style="border-color:rgba(255,214,0,0.4);color:var(--yellow);">
+            <i class="fas fa-check-shield"></i>
+            Selected Diode: 1N4001 (50V, 1A General Purpose Rectifier)
+        </div>
+
+        <!-- Explanation -->
+        <div class="calc-explanation">
+            <i class="fas fa-info-circle text-accent"></i>&nbsp;
+            As required by the <strong>PS-37 design scope</strong>, the 1N4001 flyback diode provides an alternate discharge path
+            for the inductor's stored magnetic energy (\( \frac{1}{2} L I^2 \)) when the transistor switches off, completely preventing
+            transistor punch-through failure.
+        </div>
+
+        <!-- ===== DIODE CANDIDATE BENCHMARKING BOX WITH INTERACTIVE SUB-MENUS ===== -->
+        <div class="diode-benchmark-box">
+            <div class="diode-bench-title">
+                <i class="fas fa-balance-scale" style="color:var(--accent);"></i>
+                Flyback Diode Selection &amp; Benchmarking Analysis
+            </div>
+            <p class="diode-bench-subtitle">
+                To guarantee circuit reliability under the <strong>PS-37</strong> specification (12 V supply, 100 mA inductive doorbell buzzer load), three candidate diodes were evaluated. Click the sub-menus below to explore each individual diode column and see why the <strong>1N4001 works</strong>, while the <strong>1N4148</strong> and <strong>1N4733A fail</strong>.
+            </p>
+
+            <!-- Interactive Sub-Menu Tabs -->
+            <div class="diode-submenu-bar" role="tablist" aria-label="Flyback Diode Candidates">
+                <button type="button" class="diode-sub-btn active btn-works" data-target="panel-1n4001" role="tab" aria-selected="true">
+                    <i class="fas fa-check-circle"></i> 1N4001 (Works ✓)
+                </button>
+                <button type="button" class="diode-sub-btn btn-fails" data-target="panel-1n4148" role="tab" aria-selected="false">
+                    <i class="fas fa-times-circle"></i> 1N4148 (Fails ✗)
+                </button>
+                <button type="button" class="diode-sub-btn btn-fails" data-target="panel-1n4733a" role="tab" aria-selected="false">
+                    <i class="fas fa-times-circle"></i> 1N4733A (Fails ✗)
+                </button>
+                <button type="button" class="diode-sub-btn btn-all" data-target="panel-compare-all" role="tab" aria-selected="false">
+                    <i class="fas fa-table"></i> Compare All Matrix
+                </button>
+            </div>
+
+            <!-- ============================================== -->
+            <!-- SUB-MENU 1: 1N4001 (WORKS / SELECTED FOR PS-37) -->
+            <!-- ============================================== -->
+            <div class="diode-sub-panel active" id="panel-1n4001" role="tabpanel">
+                <div class="diode-column-card card-works">
+                    <div class="sub-panel-header">
+                        <div>
+                            <h3 class="sub-panel-title">1N4001 — Silicon Power Rectifier</h3>
+                            <div class="sub-panel-subtitle">DO-41 Axial Package &bull; Heavy Copper Leads &bull; Rugged Coil Clamp</div>
+                        </div>
+                        <span class="diode-badge works"><i class="fas fa-check-circle"></i> WORKS (SELECTED FOR PS-37)</span>
+                    </div>
+
+                    <!-- Individual Column Table for 1N4001 -->
+                    <div class="diode-table-wrap">
+                        <table class="diode-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:30%;">Parameter</th>
+                                    <th style="width:35%;">Circuit Need (PS-37)</th>
+                                    <th style="width:35%;color:var(--green);">1N4001 Specification &amp; Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Diode Topology</td>
+                                    <td>Power Rectifier</td>
+                                    <td style="color:var(--green);font-weight:600;">Standard Silicon Rectifier ✓</td>
+                                </tr>
+                                <tr>
+                                    <td>Peak Reverse Voltage (V<sub>RRM</sub>)</td>
+                                    <td>&ge; 12 V (Supply Bus V<sub>CC</sub>)</td>
+                                    <td style="color:var(--green);font-weight:600;">50 V <span class="spec-tag pass">PASS (4.17× Margin)</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Continuous Forward Current (I<sub>F</sub>)</td>
+                                    <td>&ge; 100 mA (Buzzer Load Current)</td>
+                                    <td style="color:var(--green);font-weight:600;">1000 mA (1.0 A) <span class="spec-tag pass">PASS (10× Capacity)</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Peak Forward Surge (I<sub>FSM</sub>)</td>
+                                    <td>Handles Coil Switch-off Kickback</td>
+                                    <td style="color:var(--green);font-weight:600;">30 A (8.3 ms half-sine) <span class="spec-tag pass">PASS</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Package &amp; Heat Dissipation</td>
+                                    <td>Low Thermal Resistance</td>
+                                    <td style="color:var(--green);font-weight:600;">DO-41 (θ<sub>JA</sub> = 50°C/W) ✓</td>
+                                </tr>
+                                <tr>
+                                    <td>Operating Verdict</td>
+                                    <td>Safe, Durable Clamping</td>
+                                    <td style="color:var(--green);font-weight:700;"><i class="fas fa-check"></i> WORKS (SELECTED FOR PS-37) ✓</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Why 1N4001 Works -->
+                    <div class="diode-verdict-box" style="margin-top:16px;">
+                        <div class="verdict-heading"><i class="fas fa-check-circle"></i> Why 1N4001 Works in this Circuit</div>
+                        <p style="margin:0;">
+                            <strong>1. Reliable Reverse Blocking:</strong> With V<sub>RRM</sub> = 50 V, it comfortably blocks the 12 V DC bus with negligible leakage current (&lt; 5 µA) while the buzzer operates.<br>
+                            <strong>2. High Surge Absorption:</strong> When the BJT turns off, the buzzer coil kicks back current (100 mA). The 1.0 A continuous and 30 A surge rating effortlessly circulates the inductive energy without thermal stress.<br>
+                            <strong>3. Safe Clamping:</strong> Keeps collector voltage locked at V<sub>CC</sub> + V<sub>F</sub> &approx; 12.7 V &ll; 40 V (V<sub>CEO</sub> of 2N2222).
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================== -->
+            <!-- SUB-MENU 2: 1N4148 (DOES NOT WORK / FAILS)     -->
+            <!-- ============================================== -->
+            <div class="diode-sub-panel" id="panel-1n4148" role="tabpanel">
+                <div class="diode-column-card card-fails">
+                    <div class="sub-panel-header">
+                        <div>
+                            <h3 class="sub-panel-title">1N4148 — High-Speed Small Signal Diode</h3>
+                            <div class="sub-panel-subtitle">DO-35 Glass Package &bull; Microscopic Die &bull; Low Current RF/Logic Only</div>
+                        </div>
+                        <span class="diode-badge fails"><i class="fas fa-times-circle"></i> DOES NOT WORK (SURGE FAILURE)</span>
+                    </div>
+
+                    <!-- Individual Column Table for 1N4148 -->
+                    <div class="diode-table-wrap">
+                        <table class="diode-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:30%;">Parameter</th>
+                                    <th style="width:35%;">Circuit Need (PS-37)</th>
+                                    <th style="width:35%;color:var(--red);">1N4148 Specification &amp; Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Diode Topology</td>
+                                    <td>Power Rectifier</td>
+                                    <td style="color:var(--red);font-weight:600;">Small-Signal Switching ✗</td>
+                                </tr>
+                                <tr>
+                                    <td>Peak Reverse Voltage (V<sub>RRM</sub>)</td>
+                                    <td>&ge; 12 V (Supply Bus V<sub>CC</sub>)</td>
+                                    <td style="color:var(--green);font-weight:600;">100 V <span class="spec-tag pass">PASS (Voltage OK)</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Continuous Forward Current (I<sub>F</sub>)</td>
+                                    <td>&ge; 100 mA (Buzzer Load Current)</td>
+                                    <td style="color:var(--red);font-weight:600;">150–200 mA <span class="spec-tag fail">FAIL (67% Capacity, Zero Margin)</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Peak Forward Surge (I<sub>FSM</sub>)</td>
+                                    <td>Handles Coil Switch-off Kickback</td>
+                                    <td style="color:var(--red);font-weight:600;">450 mA (1 µs) / 500 mW <span class="spec-tag fail">FAIL (Junction Overheats)</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Package &amp; Heat Dissipation</td>
+                                    <td>Low Thermal Resistance</td>
+                                    <td style="color:var(--red);font-weight:600;">DO-35 Glass (θ<sub>JA</sub> = 300°C/W) ✗</td>
+                                </tr>
+                                <tr>
+                                    <td>Operating Verdict</td>
+                                    <td>Safe, Durable Clamping</td>
+                                    <td style="color:var(--red);font-weight:700;"><i class="fas fa-times"></i> FAILS (THERMAL BURNOUT &amp; DIE FUSION) ✗</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Why 1N4148 Fails -->
+                    <div class="diode-verdict-box" style="margin-top:16px;">
+                        <div class="verdict-heading"><i class="fas fa-exclamation-triangle"></i> Why 1N4148 Fails in this Circuit</div>
+                        <p style="margin:0;">
+                            <strong>1. Inadequate Current Headroom:</strong> The continuous 100 mA buzzer current is at 67% of its absolute max rating (150 mA), leaving zero thermal safety margin.<br>
+                            <strong>2. Junction Burnout / Fusion:</strong> The 1N4148 has a microscopic silicon die in a glass package with poor heat dissipation. The high dynamic impedance during inductive collapse creates severe I<sup>2</sup>R heat pulses, leading to thermal runaway and permanent junction burnout.<br>
+                            <strong>3. Transistor Vulnerability:</strong> Once the 1N4148 fails open, subsequent buzzer turn-off spikes exceed 80 V, instantly destroying the 2N2222 BJT.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================== -->
+            <!-- SUB-MENU 3: 1N4733A (DOES NOT WORK / FAILS)    -->
+            <!-- ============================================== -->
+            <div class="diode-sub-panel" id="panel-1n4733a" role="tabpanel">
+                <div class="diode-column-card card-fails">
+                    <div class="sub-panel-header">
+                        <div>
+                            <h3 class="sub-panel-title">1N4733A — 5.1V Zener Diode</h3>
+                            <div class="sub-panel-subtitle">DO-41 Glass Package &bull; Voltage Regulator &bull; V<sub>Z</sub> Below 12V Supply</div>
+                        </div>
+                        <span class="diode-badge fails"><i class="fas fa-times-circle"></i> DOES NOT WORK (DC SHORT-CIRCUIT)</span>
+                    </div>
+
+                    <!-- Individual Column Table for 1N4733A -->
+                    <div class="diode-table-wrap">
+                        <table class="diode-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:30%;">Parameter</th>
+                                    <th style="width:35%;">Circuit Need (PS-37)</th>
+                                    <th style="width:35%;color:var(--red);">1N4733A Specification &amp; Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Diode Topology</td>
+                                    <td>Power Rectifier</td>
+                                    <td style="color:var(--red);font-weight:600;">Zener Voltage Regulator ✗</td>
+                                </tr>
+                                <tr>
+                                    <td>Zener Breakdown (V<sub>Z</sub>) / Reverse</td>
+                                    <td>&ge; 12 V (Supply Bus V<sub>CC</sub>)</td>
+                                    <td style="color:var(--red);font-weight:600;">5.1 V <span class="spec-tag fail">CRITICAL FAIL (Breaks Down at 12V!)</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Reverse Blocking at 12V DC</td>
+                                    <td>Open-Circuit (No Current)</td>
+                                    <td style="color:var(--red);font-weight:600;">Shorts Rail (&gt; 2 A Continuous) <span class="spec-tag fail">FAIL</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Continuous Power Dissipation</td>
+                                    <td>&lt; 0.5 W Transient Only</td>
+                                    <td style="color:var(--red);font-weight:600;">&gt; 5–10 W (Rated only 1.0 W) <span class="spec-tag fail">EXCEEDED</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Package &amp; Heat Dissipation</td>
+                                    <td>Low Thermal Resistance</td>
+                                    <td style="color:var(--red);font-weight:600;">DO-41 Glass (Overheats Violently) ✗</td>
+                                </tr>
+                                <tr>
+                                    <td>Operating Verdict</td>
+                                    <td>Safe, Durable Clamping</td>
+                                    <td style="color:var(--red);font-weight:700;"><i class="fas fa-times"></i> FAILS (IMMEDIATE DC SHORT &amp; BURNOUT) ✗</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Why 1N4733A Fails -->
+                    <div class="diode-verdict-box" style="margin-top:16px;">
+                        <div class="verdict-heading"><i class="fas fa-skull-crossbones"></i> Why 1N4733A Fails in this Circuit</div>
+                        <p style="margin:0;">
+                            <strong>1. Breakdown Voltage Below Supply:</strong> A flyback diode is reverse-biased across the 12 V supply. Because V<sub>Z</sub> = 5.1 V &lt; 12 V, the 1N4733A breaks down into continuous reverse conduction immediately when power is applied!<br>
+                            <strong>2. Permanent DC Short-Circuit:</strong> It creates a continuous low-resistance bypass across the buzzer coil, pulling excessive current from the 12 V rail (&gt; 2 A), starving the buzzer, and overloading the supply.<br>
+                            <strong>3. Rapid Thermal Destruction:</strong> Dissipating over 5–10 W (well above its 1.0 W rating), the diode overheats to boiling temperature and burns out within seconds.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================== -->
+            <!-- SUB-MENU 4: COMPARE ALL MATRIX (FULL TABLE)    -->
+            <!-- ============================================== -->
+            <div class="diode-sub-panel" id="panel-compare-all" role="tabpanel">
+                <h4 style="font-family:var(--ff-display);font-size:.75rem;letter-spacing:1.5px;color:var(--text2);margin:0 0 10px;text-transform:uppercase;">
+                    <i class="fas fa-table"></i>&nbsp; Master Flyback Diode Selection Matrix (PS-37)
+                </h4>
+                <div class="diode-table-wrap">
+                    <table class="diode-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Circuit Need (PS-37)</th>
+                                <th>1N4001 (Selected)</th>
+                                <th>1N4148 (Small Signal)</th>
+                                <th>1N4733A (5.1V Zener)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Diode Topology</td>
+                                <td>Power Rectifier</td>
+                                <td style="color:var(--green);font-weight:600;">Standard Rectifier ✓</td>
+                                <td style="color:var(--red);">Small-Signal Switching ✗</td>
+                                <td style="color:var(--red);">Zener Regulator ✗</td>
+                            </tr>
+                            <tr>
+                                <td>Reverse Voltage (V<sub>RRM</sub>)</td>
+                                <td>&ge; 12 V (V<sub>CC</sub>)</td>
+                                <td style="color:var(--green);">50 V (4.17× safe margin) ✓</td>
+                                <td style="color:var(--green);">100 V (Passes voltage) ✓</td>
+                                <td style="color:var(--red);font-weight:600;">5.1 V (Breaks down at 12V!) ✗</td>
+                            </tr>
+                            <tr>
+                                <td>Continuous Forward (I<sub>F</sub>)</td>
+                                <td>&ge; 100 mA (I<sub>LOAD</sub>)</td>
+                                <td style="color:var(--green);font-weight:600;">1000 mA (10× capacity) ✓</td>
+                                <td style="color:var(--red);">150–200 mA (Marginal/Weak) ✗</td>
+                                <td style="color:var(--orange);">~150 mA (Zener limit)</td>
+                            </tr>
+                            <tr>
+                                <td>Surge Capability (I<sub>FSM</sub>)</td>
+                                <td>Handles Coil Discharge</td>
+                                <td style="color:var(--green);">30 A (Coil surge safe) ✓</td>
+                                <td style="color:var(--red);">450 mA (Junction overheats) ✗</td>
+                                <td style="color:var(--red);">Exceeded continuously ✗</td>
+                            </tr>
+                            <tr>
+                                <td>Package &amp; Heat Dissipation</td>
+                                <td>Low thermal resistance</td>
+                                <td style="color:var(--green);">DO-41 (50°C/W) ✓</td>
+                                <td style="color:var(--red);">DO-35 Glass (300°C/W) ✗</td>
+                                <td style="color:var(--red);">Overheats violently ✗</td>
+                            </tr>
+                            <tr>
+                                <td>Operating Verdict</td>
+                                <td>Safe, Durable Clamping</td>
+                                <td style="color:var(--green);font-weight:700;"><i class="fas fa-check"></i> WORKS (SELECTED)</td>
+                                <td style="color:var(--red);font-weight:700;"><i class="fas fa-times"></i> FAILS (THERMAL BURNOUT)</td>
+                                <td style="color:var(--red);font-weight:700;"><i class="fas fa-times"></i> FAILS (DC SHORT-CIRCUIT)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Engineering Takeaway -->
+            <div style="margin-top:16px;padding:12px 16px;background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.2);border-radius:var(--rad-xs);font-size:0.83rem;color:var(--text2);line-height:1.55;">
+                <strong style="color:var(--accent);"><i class="fas fa-lightbulb"></i> Engineering Rule of Thumb for Flyback Diodes:</strong>
+                A valid flyback diode must fulfill two non-negotiable criteria:
+                <strong>(1) Voltage Criterion:</strong> \( V_{RRM} > V_{CC} \) (prevents reverse conduction/short-circuit during normal ON states — where 1N4733A fails), and
+                <strong>(2) Current Criterion:</strong> \( I_{F(avg)} \ge I_{LOAD} \) with high peak pulse rating \( I_{FSM} \) (prevents thermal runaway under high-energy inductive kickbacks — where 1N4148 fails).
+                The <strong>1N4001</strong> satisfies both criteria with generous engineering margins.
+            </div>
+        </div>
+    </section>
+
+</div><!-- /.section -->
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/calculations.js') }}"></script>
+{% endblock %}

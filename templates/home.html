@@ -1,0 +1,844 @@
+{% extends 'base.html' %}
+
+{% block title_suffix %} – Home{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ============================================================
+   HOME PAGE – Page-Specific Styles
+   ============================================================ */
+
+/* --- Hero Section --- */
+.hero-home {
+  position: relative;
+  min-height: calc(100vh - var(--hdr));
+  display: flex; align-items: center; justify-content: center;
+  text-align: center; overflow: hidden;
+  padding: 80px 28px 60px;
+}
+.hero-home .hero-bg {
+  position: absolute; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 120% 80% at 50% 40%, rgba(0,212,255,.09), transparent 70%),
+    radial-gradient(ellipse 60% 50% at 20% 70%, rgba(41,121,255,.06), transparent),
+    radial-gradient(ellipse 50% 40% at 80% 30%, rgba(0,230,118,.04), transparent),
+    linear-gradient(180deg, var(--bg0) 0%, var(--bg1) 100%);
+}
+.hero-content { position: relative; z-index: 2; max-width: 860px; }
+.hero-title-main {
+  font-family: var(--ff-display); font-size: 4.5rem; font-weight: 900;
+  letter-spacing: 10px; line-height: 1.1;
+  background: linear-gradient(135deg, #ffffff 0%, var(--accent) 50%, var(--blue) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 20px;
+  filter: drop-shadow(0 0 30px rgba(0,212,255,.35));
+  animation: heroTitleGlow 4s ease-in-out infinite alternate;
+}
+@keyframes heroTitleGlow {
+  0%   { filter: drop-shadow(0 0 20px rgba(0,212,255,.25)); }
+  100% { filter: drop-shadow(0 0 45px rgba(0,212,255,.5)); }
+}
+.hero-subtitle-main {
+  font-family: var(--ff-body); font-size: 1.3rem;
+  color: var(--text2); letter-spacing: 1.5px;
+  max-width: 650px; margin: 0 auto 48px;
+  animation: fadeInUp .8s var(--ease) .3s both;
+}
+.hero-cta {
+  animation: fadeInUp .8s var(--ease) .6s both;
+}
+.btn-hero {
+  padding: 18px 52px; font-size: 1.1rem; letter-spacing: 3px;
+  background: linear-gradient(135deg, var(--accent2), var(--blue));
+  color: #fff; border: none; border-radius: var(--rad-sm);
+  font-family: var(--ff-display); font-weight: 700;
+  cursor: pointer; position: relative; overflow: hidden;
+  box-shadow: 0 6px 30px rgba(0,212,255,.35);
+  transition: var(--tr);
+  text-decoration: none;
+  display: inline-flex; align-items: center; gap: 12px;
+}
+.btn-hero:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 10px 50px rgba(0,212,255,.55);
+  color: #fff;
+}
+.btn-hero::before {
+  content: ''; position: absolute; top: 50%; left: 50%;
+  width: 0; height: 0; border-radius: 50%;
+  background: rgba(255,255,255,.15);
+  transform: translate(-50%, -50%);
+  transition: width .5s ease, height .5s ease;
+}
+.btn-hero:hover::before { width: 400px; height: 400px; }
+.btn-hero i { font-size: 1rem; transition: transform .3s ease; }
+.btn-hero:hover i { transform: translateX(4px); }
+
+/* Hero SVG Decorations */
+.hero-svg-decor {
+  position: absolute; inset: 0; z-index: 1;
+  pointer-events: none; overflow: hidden;
+}
+.hero-svg-decor svg { width: 100%; height: 100%; }
+
+/* Floating Particles Canvas */
+#particleCanvas {
+  position: absolute; inset: 0; z-index: 1;
+  pointer-events: none;
+}
+
+/* --- Section Divider (animated SVG line) --- */
+.section-divider {
+  position: relative;
+  height: 60px; width: 100%;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.section-divider svg { width: 100%; max-width: 900px; height: 40px; }
+.divider-line {
+  stroke: var(--accent); stroke-width: 1.5;
+  stroke-dasharray: 12 8; fill: none;
+  animation: circuitFlow 3s linear infinite;
+}
+.divider-node {
+  fill: var(--accent);
+  animation: glowPulse 2s ease-in-out infinite;
+}
+.divider-node-ring {
+  fill: none; stroke: var(--accent); stroke-width: 1;
+  opacity: .4;
+  animation: glowPulse 2s ease-in-out infinite .5s;
+}
+
+/* --- Problem Statement Section --- */
+.problem-section {
+  padding: 80px 28px;
+  max-width: 1280px; margin: 0 auto;
+  position: relative;
+}
+.problem-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-glow);
+  border-radius: var(--rad);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  padding: 48px 48px 44px;
+  position: relative; overflow: hidden;
+  transition: var(--tr);
+}
+.problem-card:hover {
+  border-color: rgba(0,212,255,.4);
+  box-shadow: 0 8px 40px rgba(0,0,0,.4), var(--accent-glow);
+}
+/* Circuit-pattern decoration inside the card */
+.problem-card .circuit-pattern {
+  position: absolute; top: 0; right: 0;
+  width: 260px; height: 260px;
+  opacity: .06; pointer-events: none;
+}
+.problem-card .circuit-pattern-bl {
+  position: absolute; bottom: 0; left: 0;
+  width: 200px; height: 200px;
+  opacity: .05; pointer-events: none;
+  transform: rotate(180deg);
+}
+.problem-text {
+  font-family: var(--ff-body); font-size: 1.15rem;
+  color: var(--text2); line-height: 1.85;
+  max-width: 900px; margin: 0 auto;
+  position: relative; z-index: 1;
+}
+.problem-text strong { color: var(--accent); font-weight: 600; }
+.problem-highlight {
+  display: inline-block; padding: 2px 10px;
+  background: rgba(0,212,255,.08);
+  border-radius: var(--rad-xs);
+  color: var(--text); font-weight: 600;
+}
+
+/* --- Objectives Section --- */
+.objectives-section {
+  padding: 80px 28px;
+  max-width: 1280px; margin: 0 auto;
+}
+.objectives-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+/* --- Applications Section --- */
+.applications-section {
+  padding: 80px 28px;
+  max-width: 1280px; margin: 0 auto;
+}
+.applications-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+/* Slightly different accent colors per app card */
+.app-card:nth-child(1) .ic-icon { color: var(--cyan); border-color: rgba(0,229,255,.25); background: rgba(0,229,255,.08); }
+.app-card:nth-child(2) .ic-icon { color: var(--green); border-color: rgba(0,230,118,.25); background: rgba(0,230,118,.08); }
+.app-card:nth-child(3) .ic-icon { color: var(--blue); border-color: rgba(41,121,255,.25); background: rgba(41,121,255,.08); }
+.app-card:nth-child(4) .ic-icon { color: var(--purple); border-color: rgba(124,77,255,.25); background: rgba(124,77,255,.08); }
+.app-card:nth-child(5) .ic-icon { color: var(--orange); border-color: rgba(255,145,0,.25); background: rgba(255,145,0,.08); }
+.app-card:nth-child(6) .ic-icon { color: var(--yellow); border-color: rgba(255,214,0,.25); background: rgba(255,214,0,.08); }
+.app-card:nth-child(1):hover .ic-icon { box-shadow: 0 0 20px rgba(0,229,255,.3); }
+.app-card:nth-child(2):hover .ic-icon { box-shadow: 0 0 20px rgba(0,230,118,.3); }
+.app-card:nth-child(3):hover .ic-icon { box-shadow: 0 0 20px rgba(41,121,255,.3); }
+.app-card:nth-child(4):hover .ic-icon { box-shadow: 0 0 20px rgba(124,77,255,.3); }
+.app-card:nth-child(5):hover .ic-icon { box-shadow: 0 0 20px rgba(255,145,0,.3); }
+.app-card:nth-child(6):hover .ic-icon { box-shadow: 0 0 20px rgba(255,214,0,.3); }
+
+/* --- Bottom CTA Section --- */
+.bottom-cta {
+  padding: 100px 28px;
+  display: flex; align-items: center; justify-content: center;
+}
+.cta-box {
+  text-align: center;
+  padding: 60px 60px 56px;
+  background: var(--bg-card);
+  border-radius: var(--rad);
+  border: 1px solid var(--border-glow);
+  backdrop-filter: blur(14px);
+  position: relative;
+  max-width: 700px; width: 100%;
+  overflow: hidden;
+  animation: ctaBorderGlow 3s ease-in-out infinite alternate;
+}
+@keyframes ctaBorderGlow {
+  0%   { border-color: rgba(0,212,255,.2); box-shadow: 0 0 20px rgba(0,212,255,.05); }
+  100% { border-color: rgba(0,212,255,.55); box-shadow: 0 0 50px rgba(0,212,255,.15), inset 0 0 30px rgba(0,212,255,.03); }
+}
+.cta-title {
+  font-family: var(--ff-display); font-size: 2rem; font-weight: 700;
+  letter-spacing: 3px;
+  background: linear-gradient(135deg, #fff, var(--accent));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 12px;
+}
+.cta-subtitle {
+  color: var(--text2); font-size: 1.1rem;
+  margin-bottom: 36px;
+}
+/* Corner decorations */
+.cta-corner {
+  position: absolute; width: 40px; height: 40px;
+  border-color: var(--accent); border-style: solid;
+  opacity: .4;
+}
+.cta-corner.tl { top: 12px; left: 12px; border-width: 2px 0 0 2px; border-radius: 4px 0 0 0; }
+.cta-corner.tr { top: 12px; right: 12px; border-width: 2px 2px 0 0; border-radius: 0 4px 0 0; }
+.cta-corner.bl { bottom: 12px; left: 12px; border-width: 0 0 2px 2px; border-radius: 0 0 0 4px; }
+.cta-corner.br { bottom: 12px; right: 12px; border-width: 0 2px 2px 0; border-radius: 0 0 4px 0; }
+
+/* --- Scroll Reveal --- */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity .7s var(--ease), transform .7s var(--ease);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: .1s; }
+.reveal-delay-2 { transition-delay: .2s; }
+.reveal-delay-3 { transition-delay: .3s; }
+.reveal-delay-4 { transition-delay: .4s; }
+.reveal-delay-5 { transition-delay: .5s; }
+.reveal-delay-6 { transition-delay: .6s; }
+
+/* --- Responsive Overrides --- */
+@media (max-width: 1024px) {
+  .hero-title-main { font-size: 3.2rem; letter-spacing: 7px; }
+  .objectives-grid,
+  .applications-grid { grid-template-columns: repeat(2, 1fr); }
+  .problem-card { padding: 36px 32px; }
+}
+@media (max-width: 768px) {
+  .hero-title-main { font-size: 2.4rem; letter-spacing: 4px; }
+  .hero-subtitle-main { font-size: 1.05rem; }
+  .btn-hero { padding: 14px 36px; font-size: .95rem; letter-spacing: 2px; }
+  .objectives-grid,
+  .applications-grid { grid-template-columns: 1fr; }
+  .problem-card { padding: 28px 22px; }
+  .problem-text { font-size: 1rem; }
+  .cta-box { padding: 40px 24px; }
+  .cta-title { font-size: 1.5rem; }
+  .problem-section,
+  .objectives-section,
+  .applications-section { padding: 50px 16px; }
+}
+@media (max-width: 480px) {
+  .hero-title-main { font-size: 1.8rem; letter-spacing: 3px; }
+  .btn-hero { padding: 12px 28px; font-size: .85rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ================================================================
+     A. HERO SECTION
+     ================================================================ -->
+<section class="hero-home" id="heroSection">
+  <div class="hero-bg"></div>
+
+  <!-- Floating particle canvas -->
+  <canvas id="particleCanvas" aria-hidden="true"></canvas>
+
+  <!-- Animated SVG circuit decorations -->
+  <div class="hero-svg-decor" aria-hidden="true">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="3" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <linearGradient id="lineGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="rgba(0,212,255,0)"/>
+          <stop offset="50%" stop-color="rgba(0,212,255,.5)"/>
+          <stop offset="100%" stop-color="rgba(0,212,255,0)"/>
+        </linearGradient>
+        <linearGradient id="lineGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="rgba(41,121,255,0)"/>
+          <stop offset="50%" stop-color="rgba(41,121,255,.4)"/>
+          <stop offset="100%" stop-color="rgba(41,121,255,0)"/>
+        </linearGradient>
+      </defs>
+
+      <!-- Horizontal PCB traces -->
+      <g opacity=".3" filter="url(#glow)">
+        <!-- Top horizontal traces -->
+        <line x1="0" y1="80" x2="350" y2="80" stroke="url(#lineGrad1)" stroke-width="1" stroke-dasharray="15 10">
+          <animate attributeName="stroke-dashoffset" from="200" to="0" dur="4s" repeatCount="indefinite"/>
+        </line>
+        <line x1="850" y1="120" x2="1200" y2="120" stroke="url(#lineGrad1)" stroke-width="1" stroke-dasharray="15 10">
+          <animate attributeName="stroke-dashoffset" from="0" to="200" dur="5s" repeatCount="indefinite"/>
+        </line>
+
+        <!-- Bottom horizontal traces -->
+        <line x1="0" y1="580" x2="400" y2="580" stroke="url(#lineGrad1)" stroke-width="1" stroke-dasharray="12 8">
+          <animate attributeName="stroke-dashoffset" from="150" to="0" dur="6s" repeatCount="indefinite"/>
+        </line>
+        <line x1="800" y1="620" x2="1200" y2="620" stroke="url(#lineGrad1)" stroke-width="1" stroke-dasharray="12 8">
+          <animate attributeName="stroke-dashoffset" from="0" to="150" dur="4.5s" repeatCount="indefinite"/>
+        </line>
+
+        <!-- Vertical traces -->
+        <line x1="100" y1="0" x2="100" y2="250" stroke="url(#lineGrad2)" stroke-width="1" stroke-dasharray="10 12">
+          <animate attributeName="stroke-dashoffset" from="180" to="0" dur="5s" repeatCount="indefinite"/>
+        </line>
+        <line x1="1100" y1="450" x2="1100" y2="700" stroke="url(#lineGrad2)" stroke-width="1" stroke-dasharray="10 12">
+          <animate attributeName="stroke-dashoffset" from="0" to="180" dur="5.5s" repeatCount="indefinite"/>
+        </line>
+
+        <!-- Angled traces -->
+        <polyline points="300,80 340,80 380,140 420,140" fill="none" stroke="rgba(0,212,255,.3)" stroke-width="1" stroke-dasharray="8 6">
+          <animate attributeName="stroke-dashoffset" from="100" to="0" dur="3s" repeatCount="indefinite"/>
+        </polyline>
+        <polyline points="800,120 840,120 870,170 920,170" fill="none" stroke="rgba(0,212,255,.3)" stroke-width="1" stroke-dasharray="8 6">
+          <animate attributeName="stroke-dashoffset" from="0" to="100" dur="3.5s" repeatCount="indefinite"/>
+        </polyline>
+      </g>
+
+      <!-- Glowing nodes at junctions -->
+      <g filter="url(#glow)">
+        <circle cx="100" cy="80" r="3" fill="rgba(0,212,255,.6)">
+          <animate attributeName="r" values="2;4;2" dur="2s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values=".4;1;.4" dur="2s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="350" cy="80" r="3" fill="rgba(0,212,255,.6)">
+          <animate attributeName="r" values="2;4;2" dur="2.5s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values=".4;1;.4" dur="2.5s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="850" cy="120" r="3" fill="rgba(41,121,255,.6)">
+          <animate attributeName="r" values="2;4;2" dur="2.2s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values=".4;1;.4" dur="2.2s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="1100" cy="120" r="3" fill="rgba(41,121,255,.6)">
+          <animate attributeName="r" values="2;4;2" dur="3s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values=".4;1;.4" dur="3s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="100" cy="250" r="3" fill="rgba(0,212,255,.5)">
+          <animate attributeName="r" values="2;4;2" dur="2.8s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="1100" cy="450" r="3" fill="rgba(41,121,255,.5)">
+          <animate attributeName="r" values="2;4;2" dur="2.3s" repeatCount="indefinite"/>
+        </circle>
+      </g>
+
+      <!-- Stylized NPN Transistor Symbol (center-left area) -->
+      <g transform="translate(120, 320)" opacity=".18" filter="url(#glow)">
+        <!-- Transistor body circle -->
+        <circle cx="0" cy="0" r="32" fill="none" stroke="var(--accent)" stroke-width="1.2"/>
+        <!-- Base line -->
+        <line x1="-50" y1="0" x2="-14" y2="0" stroke="var(--accent)" stroke-width="1.5"/>
+        <!-- Base vertical -->
+        <line x1="-14" y1="-20" x2="-14" y2="20" stroke="var(--accent)" stroke-width="2"/>
+        <!-- Collector -->
+        <line x1="-14" y1="-12" x2="20" y2="-28" stroke="var(--accent)" stroke-width="1.5"/>
+        <line x1="20" y1="-28" x2="20" y2="-50" stroke="var(--accent)" stroke-width="1.5"/>
+        <!-- Emitter with arrow -->
+        <line x1="-14" y1="12" x2="20" y2="28" stroke="var(--accent)" stroke-width="1.5"/>
+        <line x1="20" y1="28" x2="20" y2="50" stroke="var(--accent)" stroke-width="1.5"/>
+        <!-- Arrow head on emitter -->
+        <polygon points="14,22 22,30 10,30" fill="var(--accent)"/>
+        <!-- Labels -->
+        <text x="-60" y="5" fill="var(--accent)" font-family="var(--ff-mono)" font-size="10" opacity=".7">B</text>
+        <text x="26" y="-36" fill="var(--accent)" font-family="var(--ff-mono)" font-size="10" opacity=".7">C</text>
+        <text x="26" y="44" fill="var(--accent)" font-family="var(--ff-mono)" font-size="10" opacity=".7">E</text>
+      </g>
+
+      <!-- Stylized NPN Transistor Symbol (right area) -->
+      <g transform="translate(1060, 360)" opacity=".12" filter="url(#glow)">
+        <circle cx="0" cy="0" r="28" fill="none" stroke="var(--blue)" stroke-width="1"/>
+        <line x1="-45" y1="0" x2="-12" y2="0" stroke="var(--blue)" stroke-width="1.2"/>
+        <line x1="-12" y1="-18" x2="-12" y2="18" stroke="var(--blue)" stroke-width="1.5"/>
+        <line x1="-12" y1="-10" x2="16" y2="-24" stroke="var(--blue)" stroke-width="1.2"/>
+        <line x1="-12" y1="10" x2="16" y2="24" stroke="var(--blue)" stroke-width="1.2"/>
+        <polygon points="10,18 18,26 8,26" fill="var(--blue)"/>
+      </g>
+
+      <!-- Scattered PCB via holes -->
+      <g opacity=".15">
+        <circle cx="200" cy="160" r="5" fill="none" stroke="var(--accent)" stroke-width="1"/>
+        <circle cx="200" cy="160" r="2" fill="var(--accent)"/>
+        <circle cx="950" cy="200" r="5" fill="none" stroke="var(--blue)" stroke-width="1"/>
+        <circle cx="950" cy="200" r="2" fill="var(--blue)"/>
+        <circle cx="180" cy="540" r="5" fill="none" stroke="var(--accent)" stroke-width="1"/>
+        <circle cx="180" cy="540" r="2" fill="var(--accent)"/>
+        <circle cx="1020" cy="520" r="5" fill="none" stroke="var(--blue)" stroke-width="1"/>
+        <circle cx="1020" cy="520" r="2" fill="var(--blue)"/>
+        <circle cx="500" cy="640" r="4" fill="none" stroke="var(--accent)" stroke-width="1"/>
+        <circle cx="500" cy="640" r="1.5" fill="var(--accent)"/>
+        <circle cx="700" cy="60" r="4" fill="none" stroke="var(--blue)" stroke-width="1"/>
+        <circle cx="700" cy="60" r="1.5" fill="var(--blue)"/>
+      </g>
+    </svg>
+  </div>
+
+  <!-- Hero Content -->
+  <div class="hero-content">
+    <h1 class="hero-title-main">BJT LAB<span style="color:var(--accent);-webkit-text-fill-color:var(--accent);">X</span></h1>
+    <p class="hero-subtitle-main">Interactive Bipolar Junction Transistor Analysis and Simulation</p>
+    <div class="hero-cta">
+      <a href="/circuit" class="btn-hero btn-glow">
+        GET STARTED <i class="fas fa-arrow-right"></i>
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ─── Section Divider ─── -->
+<div class="section-divider" aria-hidden="true">
+  <svg viewBox="0 0 900 40" preserveAspectRatio="xMidYMid meet">
+    <line x1="0" y1="20" x2="400" y2="20" class="divider-line"/>
+    <circle cx="410" cy="20" r="4" class="divider-node"/>
+    <circle cx="410" cy="20" r="9" class="divider-node-ring"/>
+    <circle cx="450" cy="20" r="6" class="divider-node" style="animation-delay:.2s"/>
+    <circle cx="450" cy="20" r="12" class="divider-node-ring" style="animation-delay:.7s"/>
+    <circle cx="490" cy="20" r="4" class="divider-node" style="animation-delay:.4s"/>
+    <circle cx="490" cy="20" r="9" class="divider-node-ring" style="animation-delay:.9s"/>
+    <line x1="500" y1="20" x2="900" y2="20" class="divider-line" style="animation-direction:reverse"/>
+  </svg>
+</div>
+
+
+<!-- ================================================================
+     B. PROBLEM STATEMENT
+     ================================================================ -->
+<section class="problem-section" id="problemSection">
+  <h2 class="section-title reveal">PROBLEM STATEMENT</h2>
+  <div class="mb-3"></div>
+
+  <div class="problem-card reveal reveal-delay-1">
+    <!-- Decorative circuit patterns -->
+    <svg class="circuit-pattern" viewBox="0 0 260 260" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <line x1="0" y1="30" x2="200" y2="30" stroke="var(--accent)" stroke-width="1" stroke-dasharray="8 6"/>
+      <line x1="200" y1="30" x2="200" y2="100" stroke="var(--accent)" stroke-width="1" stroke-dasharray="8 6"/>
+      <line x1="200" y1="100" x2="260" y2="100" stroke="var(--accent)" stroke-width="1" stroke-dasharray="8 6"/>
+      <circle cx="200" cy="30" r="4" fill="var(--accent)"/>
+      <circle cx="200" cy="100" r="4" fill="var(--accent)"/>
+      <line x1="40" y1="0" x2="40" y2="80" stroke="var(--blue)" stroke-width="1" stroke-dasharray="6 8"/>
+      <line x1="40" y1="80" x2="120" y2="80" stroke="var(--blue)" stroke-width="1" stroke-dasharray="6 8"/>
+      <circle cx="40" cy="80" r="3" fill="var(--blue)"/>
+      <rect x="100" y="140" width="50" height="20" rx="3" fill="none" stroke="var(--accent)" stroke-width="1"/>
+      <line x1="80" y1="150" x2="100" y2="150" stroke="var(--accent)" stroke-width="1"/>
+      <line x1="150" y1="150" x2="180" y2="150" stroke="var(--accent)" stroke-width="1"/>
+      <line x1="30" y1="200" x2="130" y2="200" stroke="var(--accent)" stroke-width="1" stroke-dasharray="4 6"/>
+      <line x1="130" y1="200" x2="130" y2="260" stroke="var(--accent)" stroke-width="1" stroke-dasharray="4 6"/>
+    </svg>
+
+    <svg class="circuit-pattern-bl" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <line x1="0" y1="40" x2="150" y2="40" stroke="var(--blue)" stroke-width="1" stroke-dasharray="8 6"/>
+      <circle cx="150" cy="40" r="3" fill="var(--blue)"/>
+      <line x1="150" y1="40" x2="150" y2="120" stroke="var(--blue)" stroke-width="1" stroke-dasharray="8 6"/>
+      <line x1="50" y1="100" x2="120" y2="100" stroke="var(--accent)" stroke-width="1" stroke-dasharray="6 4"/>
+      <circle cx="50" cy="100" r="3" fill="var(--accent)"/>
+    </svg>
+
+    <div class="ps-header-badge" style="display:inline-block;padding:4px 14px;background:rgba(0,212,255,0.12);border:1px solid rgba(0,212,255,0.3);border-radius:4px;font-family:var(--ff-display);font-size:0.75rem;letter-spacing:1.5px;color:var(--cyan);margin-bottom:14px;">
+      PS-37 &bull; CIRCUITS &amp; POWER
+    </div>
+    <h3 style="font-family:var(--ff-display);font-size:1.4rem;color:#fff;letter-spacing:2px;margin-bottom:16px;">
+      BJT Current Amplifier Switch for High-Decibel Doorbell Buzzers
+    </h3>
+    <p class="problem-text" style="margin-bottom:20px;">
+      Design and analyze an <strong>NPN BJT current amplifier switch</strong> operating in saturation and cut-off modes to interface a <strong>weak sensor signal (2 mA at 3.3 V)</strong> with a <strong>high-decibel doorbell buzzer drawing 100 mA at 12 V</strong>. 
+      The circuit guarantees deep saturation (<span class="problem-highlight">V<sub>CE,sat</sub> &le; 0.2 V</span>) using minimum transistor gain <span class="problem-highlight">&beta; = 80</span>, calculates safe power dissipation in the BJT, and integrates a <strong>1N4001 flyback diode</strong> to clamp inductive back-EMF spikes.
+    </p>
+
+    <!-- PS-37 Specifications Grid -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-top:20px;">
+      <div style="background:rgba(10,16,30,0.7);padding:12px 16px;border-radius:var(--rad-xs);border:1px solid rgba(0,212,255,0.15);">
+        <div style="font-family:var(--ff-display);font-size:0.62rem;color:var(--text2);letter-spacing:1px;">CIRCUIT TOPOLOGY</div>
+        <div style="font-family:var(--ff-mono);font-size:0.95rem;color:var(--cyan);font-weight:600;margin-top:4px;">NPN BJT (Saturation/Cut-off)</div>
+      </div>
+      <div style="background:rgba(10,16,30,0.7);padding:12px 16px;border-radius:var(--rad-xs);border:1px solid rgba(0,212,255,0.15);">
+        <div style="font-family:var(--ff-display);font-size:0.62rem;color:var(--text2);letter-spacing:1px;">INPUT SENSOR SIGNAL</div>
+        <div style="font-family:var(--ff-mono);font-size:0.95rem;color:var(--green);font-weight:600;margin-top:4px;">2 mA at 3.3 V</div>
+      </div>
+      <div style="background:rgba(10,16,30,0.7);padding:12px 16px;border-radius:var(--rad-xs);border:1px solid rgba(0,212,255,0.15);">
+        <div style="font-family:var(--ff-display);font-size:0.62rem;color:var(--text2);letter-spacing:1px;">DOORBELL BUZZER LOAD</div>
+        <div style="font-family:var(--ff-mono);font-size:0.95rem;color:var(--yellow);font-weight:600;margin-top:4px;">100 mA at 12 V (R<sub>L</sub> = 120 Ω)</div>
+      </div>
+      <div style="background:rgba(10,16,30,0.7);padding:12px 16px;border-radius:var(--rad-xs);border:1px solid rgba(0,212,255,0.15);">
+        <div style="font-family:var(--ff-display);font-size:0.62rem;color:var(--text2);letter-spacing:1px;">MINIMUM TRANSISTOR GAIN</div>
+        <div style="font-family:var(--ff-mono);font-size:0.95rem;color:#fff;font-weight:600;margin-top:4px;">&beta; = 80 (2N2222)</div>
+      </div>
+      <div style="background:rgba(10,16,30,0.7);padding:12px 16px;border-radius:var(--rad-xs);border:1px solid rgba(0,212,255,0.15);">
+        <div style="font-family:var(--ff-display);font-size:0.62rem;color:var(--text2);letter-spacing:1px;">DEEP SATURATION RESISTANCE</div>
+        <div style="font-family:var(--ff-mono);font-size:0.95rem;color:var(--cyan);font-weight:600;margin-top:4px;">R<sub>B(design)</sub> = 1.3 kΩ (Overdrive 1.6&times;)</div>
+      </div>
+      <div style="background:rgba(10,16,30,0.7);padding:12px 16px;border-radius:var(--rad-xs);border:1px solid rgba(0,212,255,0.15);">
+        <div style="font-family:var(--ff-display);font-size:0.62rem;color:var(--text2);letter-spacing:1px;">INDUCTIVE PROTECTION</div>
+        <div style="font-family:var(--ff-mono);font-size:0.95rem;color:#ff9100;font-weight:600;margin-top:4px;">1N4001 Flyback Clamp Diode</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ─── Section Divider ─── -->
+<div class="section-divider" aria-hidden="true">
+  <svg viewBox="0 0 900 40" preserveAspectRatio="xMidYMid meet">
+    <line x1="0" y1="20" x2="420" y2="20" class="divider-line" style="animation-duration:3.5s"/>
+    <circle cx="435" cy="20" r="5" class="divider-node"/>
+    <circle cx="435" cy="20" r="11" class="divider-node-ring"/>
+    <circle cx="465" cy="20" r="5" class="divider-node" style="animation-delay:.3s"/>
+    <circle cx="465" cy="20" r="11" class="divider-node-ring" style="animation-delay:.8s"/>
+    <line x1="480" y1="20" x2="900" y2="20" class="divider-line" style="animation-duration:4s;animation-direction:reverse"/>
+  </svg>
+</div>
+
+
+<!-- ================================================================
+     C. PROJECT OBJECTIVES
+     ================================================================ -->
+<section class="objectives-section" id="objectivesSection">
+  <h2 class="section-title reveal">PROJECT OBJECTIVES</h2>
+  <p class="section-subtitle reveal reveal-delay-1">Key Goals of This Interactive Project</p>
+
+  <div class="objectives-grid">
+    <!-- 1. BJT Circuit Design -->
+    <div class="glass-card icon-card reveal reveal-delay-1">
+      <div class="ic-icon"><i class="fas fa-drafting-compass"></i></div>
+      <h3 class="ic-title">BJT Circuit Design</h3>
+      <p class="ic-desc">Design a functional 12V NPN transistor buzzer driver circuit with proper component selection.</p>
+    </div>
+
+    <!-- 2. Base Resistance Analysis -->
+    <div class="glass-card icon-card reveal reveal-delay-2">
+      <div class="ic-icon"><i class="fas fa-sliders-h"></i></div>
+      <h3 class="ic-title">Base Resistance Analysis</h3>
+      <p class="ic-desc">Calculate and analyze the effect of base resistance on transistor switching operation.</p>
+    </div>
+
+    <!-- 3. Current Calculations -->
+    <div class="glass-card icon-card reveal reveal-delay-3">
+      <div class="ic-icon"><i class="fas fa-calculator"></i></div>
+      <h3 class="ic-title">Current Calculations</h3>
+      <p class="ic-desc">Determine base current, collector current, and their relationship using transistor parameters.</p>
+    </div>
+
+    <!-- 4. Operating Region Analysis -->
+    <div class="glass-card icon-card reveal reveal-delay-4">
+      <div class="ic-icon"><i class="fas fa-chart-area"></i></div>
+      <h3 class="ic-title">Operating Region Analysis</h3>
+      <p class="ic-desc">Identify and visualize cut-off, active, and saturation regions of transistor operation.</p>
+    </div>
+
+    <!-- 5. Power Dissipation -->
+    <div class="glass-card icon-card reveal reveal-delay-5">
+      <div class="ic-icon"><i class="fas fa-bolt"></i></div>
+      <h3 class="ic-title">Power Dissipation</h3>
+      <p class="ic-desc">Calculate transistor power dissipation and verify safe operating conditions.</p>
+    </div>
+
+    <!-- 6. Interactive Simulation -->
+    <div class="glass-card icon-card reveal reveal-delay-6">
+      <div class="ic-icon"><i class="fas fa-play-circle"></i></div>
+      <h3 class="ic-title">Interactive Simulation</h3>
+      <p class="ic-desc">Build a real-time interactive simulation platform for hands-on learning.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ─── Section Divider ─── -->
+<div class="section-divider" aria-hidden="true">
+  <svg viewBox="0 0 900 40" preserveAspectRatio="xMidYMid meet">
+    <line x1="0" y1="20" x2="390" y2="20" class="divider-line" style="animation-duration:4.5s"/>
+    <circle cx="410" cy="20" r="4" class="divider-node" style="animation-delay:.1s"/>
+    <circle cx="410" cy="20" r="9" class="divider-node-ring" style="animation-delay:.6s"/>
+    <circle cx="450" cy="20" r="7" class="divider-node"/>
+    <circle cx="450" cy="20" r="14" class="divider-node-ring" style="animation-delay:.3s"/>
+    <circle cx="490" cy="20" r="4" class="divider-node" style="animation-delay:.5s"/>
+    <circle cx="490" cy="20" r="9" class="divider-node-ring" style="animation-delay:1s"/>
+    <line x1="500" y1="20" x2="900" y2="20" class="divider-line" style="animation-duration:3.8s;animation-direction:reverse"/>
+  </svg>
+</div>
+
+
+<!-- ================================================================
+     D. REAL-WORLD APPLICATIONS
+     ================================================================ -->
+<section class="applications-section" id="applicationsSection">
+  <h2 class="section-title reveal">REAL-WORLD APPLICATIONS</h2>
+  <p class="section-subtitle reveal reveal-delay-1">Where BJT Technology Powers the World</p>
+
+  <div class="applications-grid">
+    <!-- 1. Audio Amplifiers -->
+    <div class="glass-card icon-card app-card reveal reveal-delay-1">
+      <div class="ic-icon"><i class="fas fa-volume-up"></i></div>
+      <h3 class="ic-title">Audio Amplifiers</h3>
+      <p class="ic-desc">BJTs amplify weak audio signals in speakers, headphones, and PA systems.</p>
+    </div>
+
+    <!-- 2. Electronic Switching -->
+    <div class="glass-card icon-card app-card reveal reveal-delay-2">
+      <div class="ic-icon"><i class="fas fa-toggle-on"></i></div>
+      <h3 class="ic-title">Electronic Switching</h3>
+      <p class="ic-desc">BJTs serve as electronic switches in relay drivers, motor controllers, and LED circuits.</p>
+    </div>
+
+    <!-- 3. Signal Amplification -->
+    <div class="glass-card icon-card app-card reveal reveal-delay-3">
+      <div class="ic-icon"><i class="fas fa-signal"></i></div>
+      <h3 class="ic-title">Signal Amplification</h3>
+      <p class="ic-desc">Used in sensor interfaces and instrumentation to amplify low-level signals.</p>
+    </div>
+
+    <!-- 4. Oscillator Circuits -->
+    <div class="glass-card icon-card app-card reveal reveal-delay-4">
+      <div class="ic-icon"><i class="fas fa-wave-square"></i></div>
+      <h3 class="ic-title">Oscillator Circuits</h3>
+      <p class="ic-desc">BJTs generate periodic waveforms in oscillators for communication and timing.</p>
+    </div>
+
+    <!-- 5. Communication Systems -->
+    <div class="glass-card icon-card app-card reveal reveal-delay-5">
+      <div class="ic-icon"><i class="fas fa-satellite-dish"></i></div>
+      <h3 class="ic-title">Communication Systems</h3>
+      <p class="ic-desc">Employed in RF amplifiers, modulators, and receivers for wireless communication.</p>
+    </div>
+
+    <!-- 6. Control Systems -->
+    <div class="glass-card icon-card app-card reveal reveal-delay-6">
+      <div class="ic-icon"><i class="fas fa-cogs"></i></div>
+      <h3 class="ic-title">Control Systems</h3>
+      <p class="ic-desc">BJTs control actuators, solenoids, and buzzers in automated industrial systems.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ─── Section Divider ─── -->
+<div class="section-divider" aria-hidden="true">
+  <svg viewBox="0 0 900 40" preserveAspectRatio="xMidYMid meet">
+    <line x1="0" y1="20" x2="410" y2="20" class="divider-line" style="animation-duration:5s"/>
+    <circle cx="430" cy="20" r="5" class="divider-node"/>
+    <circle cx="430" cy="20" r="11" class="divider-node-ring"/>
+    <circle cx="470" cy="20" r="5" class="divider-node" style="animation-delay:.3s"/>
+    <circle cx="470" cy="20" r="11" class="divider-node-ring" style="animation-delay:.7s"/>
+    <line x1="490" y1="20" x2="900" y2="20" class="divider-line" style="animation-duration:4.2s;animation-direction:reverse"/>
+  </svg>
+</div>
+
+
+<!-- ================================================================
+     E. BOTTOM GET STARTED CTA
+     ================================================================ -->
+<section class="bottom-cta" id="ctaSection">
+  <div class="cta-box reveal">
+    <!-- Corner decorations -->
+    <div class="cta-corner tl"></div>
+    <div class="cta-corner tr"></div>
+    <div class="cta-corner bl"></div>
+    <div class="cta-corner br"></div>
+
+    <h2 class="cta-title">Ready to Explore?</h2>
+    <p class="cta-subtitle">Dive into the interactive BJT circuit simulator</p>
+    <a href="/circuit" class="btn-hero btn-glow">
+      GET STARTED <i class="fas fa-arrow-right"></i>
+    </a>
+  </div>
+</section>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+/* =============================================================
+   HOME PAGE – JavaScript
+   ============================================================= */
+
+(function () {
+  'use strict';
+
+  /* -----------------------------------------------------------
+   * 1. Floating Particle System (Hero Background)
+   * --------------------------------------------------------- */
+  const canvas = document.getElementById('particleCanvas');
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    const PARTICLE_COUNT = 55;
+
+    function resizeCanvas() {
+      const hero = canvas.parentElement;
+      canvas.width = hero.offsetWidth;
+      canvas.height = hero.offsetHeight;
+    }
+
+    function createParticle() {
+      return {
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        radius: Math.random() * 2.2 + 0.6,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: (Math.random() - 0.5) * 0.25,
+        alpha: Math.random() * 0.5 + 0.15,
+        alphaDir: (Math.random() - 0.5) * 0.008,
+        /* Color variation: cyan or blue hues */
+        hue: Math.random() > 0.5 ? '0,212,255' : '41,121,255'
+      };
+    }
+
+    function initParticles() {
+      particles = [];
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        particles.push(createParticle());
+      }
+    }
+
+    function drawParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      particles.forEach(function (p) {
+        /* Update position */
+        p.x += p.vx;
+        p.y += p.vy;
+
+        /* Pulsating alpha */
+        p.alpha += p.alphaDir;
+        if (p.alpha > 0.65 || p.alpha < 0.1) p.alphaDir *= -1;
+
+        /* Wrap around edges */
+        if (p.x < -10) p.x = canvas.width + 10;
+        if (p.x > canvas.width + 10) p.x = -10;
+        if (p.y < -10) p.y = canvas.height + 10;
+        if (p.y > canvas.height + 10) p.y = -10;
+
+        /* Draw glow */
+        ctx.beginPath();
+        const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius * 4);
+        grad.addColorStop(0, 'rgba(' + p.hue + ',' + p.alpha + ')');
+        grad.addColorStop(1, 'rgba(' + p.hue + ',0)');
+        ctx.fillStyle = grad;
+        ctx.arc(p.x, p.y, p.radius * 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        /* Draw core dot */
+        ctx.beginPath();
+        ctx.fillStyle = 'rgba(' + p.hue + ',' + Math.min(p.alpha + 0.3, 1) + ')';
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      /* Draw faint connection lines between nearby particles */
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 140) {
+            const lineAlpha = (1 - dist / 140) * 0.12;
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(0,212,255,' + lineAlpha + ')';
+            ctx.lineWidth = 0.6;
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      requestAnimationFrame(drawParticles);
+    }
+
+    resizeCanvas();
+    initParticles();
+    drawParticles();
+
+    /* Debounced resize handler */
+    let resizeTimer;
+    window.addEventListener('resize', function () {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function () {
+        resizeCanvas();
+        initParticles();
+      }, 200);
+    });
+  }
+
+
+  /* -----------------------------------------------------------
+   * 2. Scroll-Triggered Reveal Animations (IntersectionObserver)
+   * --------------------------------------------------------- */
+  const revealElements = document.querySelectorAll('.reveal');
+  if (revealElements.length > 0 && 'IntersectionObserver' in window) {
+    const revealObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          /* Once revealed, stop observing to save resources */
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, {
+      root: null,
+      rootMargin: '0px 0px -60px 0px',
+      threshold: 0.15
+    });
+
+    revealElements.forEach(function (el) {
+      revealObserver.observe(el);
+    });
+  } else {
+    /* Fallback: show everything immediately if IO not supported */
+    revealElements.forEach(function (el) {
+      el.classList.add('visible');
+    });
+  }
+
+})();
+</script>
+{% endblock %}
