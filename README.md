@@ -35,7 +35,7 @@ The system interfaces a weak sensor signal (**2 mA at 3.3 V**) with a high-curre
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/<your-username>/BJT-LAB-X.git
+   git clone https://github.com/saishu317/BJT-LAB-X.git
    cd BJT-LAB-X
    ```
 
@@ -76,3 +76,4 @@ Under guidance of **Dr. Md Jawaid Alam** (SRM Institute of Science and Technolog
 ## 📄 License
 
 This project is licensed for educational and academic use.
+
