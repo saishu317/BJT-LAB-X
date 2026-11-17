@@ -603,8 +603,9 @@
             <div class="popup-formula">$$R_B = \frac{V_{SENSOR} - V_{BE}}{I_B}$$</div>
             <div class="popup-desc">
                 Per <strong>PS-37</strong> specs: <strong>V<sub>SENSOR</sub></strong> = 3.3V (2mA max), <strong>V<sub>BE</sub></strong> = 0.7V.<br>
-                &bull; <strong>Deep Saturation Design:</strong> R<sub>B</sub> = 1.3 kΩ (Overdrive 1.6&times;, I<sub>B</sub> = 2.0 mA)<br>
-                &bull; <strong>Turn-On Boundary:</strong> R<sub>B(thresh)</sub> &approx; 2.11 kΩ (I<sub>B</sub> = 1.23 mA).
+                &bull; <strong>Maximum-Drive Base Resistance (2 mA limit):</strong> R<sub>B</sub> = 1.3 kΩ (Theoretical minimum for I<sub>B</sub> = 2.0 mA under assumed 3.3V loaded input &amp; 0.7V V<sub>BE</sub>; nominal 1.6&times; overdrive relative to active-region estimate).<br>
+                &bull; <strong>Turn-On Boundary:</strong> R<sub>B(thresh)</sub> &approx; 2.11 kΩ (I<sub>B</sub> = 1.23 mA).<br>
+                &bull; <strong style="color:var(--yellow);"><i class="fas fa-exclamation-triangle"></i> Warning:</strong> Reaching V<sub>CE(sat)</sub> &le; 0.2 V at &beta;<sub>forced</sub> = 50 still requires datasheet confirmation or bench measurement.
             </div>
             <a href="/calculations#calc-rb" class="btn-know-more">
                 <i class="fas fa-arrow-right"></i> KNOW MORE
@@ -620,7 +621,7 @@
         </div>
         <div class="slider-endpoints">
             <span>0 Ω</span>
-            <span style="color:var(--accent);">Deep Sat: 1.3 kΩ &bull; Threshold &approx; 2.1 kΩ</span>
+            <span style="color:var(--accent);">Max Drive (2 mA limit): 1.3 kΩ &bull; Threshold &approx; 2.1 kΩ</span>
             <span>100 kΩ</span>
         </div>
     </div>
@@ -641,7 +642,7 @@
                 <div class="popup-desc">
                     Calculated from the 3.3V sensor output minus the 0.7V base-emitter drop.
                     <strong>V<sub>SENSOR</sub></strong> = 3.3V, <strong>V<sub>BE</sub></strong> = 0.7V.
-                    Sensor output is rated for up to <strong>2 mA</strong>, sufficient to drive &beta; = 80 into deep saturation.
+                    Sensor output is rated for up to <strong>2 mA</strong>, evaluating available base drive and saturation feasibility. Reaching V<sub>CE(sat)</sub> &le; 0.2 V requires datasheet confirmation or measurement.
                 </div>
                 <a href="/calculations#calc-ib" class="btn-know-more">
                     <i class="fas fa-arrow-right"></i> KNOW MORE
@@ -692,6 +693,18 @@
                 <i class="fas fa-arrow-right"></i> KNOW MORE
             </a>
         </div>
+    </div>
+
+    <!-- Engineering Note & Warning on Base Drive vs. Deep Saturation -->
+    <div class="anim-fade-in anim-delay-4" style="margin-top:20px;padding:14px 18px;background:rgba(255,214,0,0.06);border:1px solid rgba(255,214,0,0.25);border-left:4px solid var(--yellow);border-radius:var(--rad-xs);">
+        <div style="font-family:var(--ff-display);font-size:0.75rem;letter-spacing:1.5px;color:var(--yellow);margin-bottom:6px;display:flex;align-items:center;gap:8px;">
+            <i class="fas fa-triangle-exclamation"></i> ENGINEERING NOTE: BASE DRIVE AT 2 mA LIMIT VS. DEEP SATURATION
+        </div>
+        <p style="font-size:0.83rem;line-height:1.55;color:var(--text);margin:0;">
+            <strong>Theoretical Minimum:</strong> <strong>R<sub>B</sub> = 1.3 kΩ</strong> is a theoretical minimum calculated under assumed 0.7 V V<sub>BE</sub> and 3.3 V loaded sensor input (I<sub>B</sub> = 2.0 mA, &beta;<sub>forced</sub> = 50).<br>
+            <strong>Overdrive Clarification:</strong> The nominal 1.6&times; overdrive factor compares available base drive with active-region estimate (100 mA / 80 = 1.25 mA). An increase in base drive is not proof of deep saturation.<br>
+            <strong>Datasheet Warning:</strong> Guaranteeing <span style="color:var(--yellow);font-weight:600;">V<sub>CE(sat)</sub> &le; 0.2 V</span> in a 2N2222 typically requires &beta;<sub>forced</sub> &le; 10; achieving V<sub>CE(sat)</sub> &le; 0.2 V at &beta;<sub>forced</sub> = 50 <strong>still requires datasheet confirmation or bench measurement</strong>.
+        </p>
     </div>
 
 </section>

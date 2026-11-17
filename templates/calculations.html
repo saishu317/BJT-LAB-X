@@ -747,16 +747,42 @@
             </div>
             <div class="calc-step" style="background:rgba(0,212,255,0.05);">
                 <span class="step-label">Design</span>
-                <span class="step-math"><strong>Deep Saturation:</strong> R<sub>B(design)</sub> = 2.6V / 2mA = <strong>1.3 kΩ</strong> (Overdrive = 1.63&times;). <strong>Threshold:</strong> R<sub>B(thresh)</sub> = 2.6V / 1.23mA = <strong>2.11 kΩ</strong>.</span>
+                <span class="step-math"><strong>Maximum-Drive Base Resistance (2 mA limit):</strong> R<sub>B(design)</sub> = 2.6V / 2mA = <strong>1.3 kΩ</strong> (Nominal Overdrive = 1.63&times;). <strong>Threshold:</strong> R<sub>B(thresh)</sub> = 2.6V / 1.23mA = <strong>2.11 kΩ</strong>.</span>
             </div>
         </div>
 
         <!-- Explanation -->
         <div class="calc-explanation">
             <i class="fas fa-info-circle text-accent"></i>&nbsp;
-            Per <strong>PS-37 specifications</strong>, the input sensor delivers 2 mA at 3.3 V. To guarantee deep saturation
-            (V<sub>CE,sat</sub> &le; 0.2 V) while staying strictly within the sensor's 2 mA output rating, the optimal base resistor
-            is selected as <strong>R<sub>B</sub> = 1.3 kΩ</strong>.
+            Per <strong>PS-37 specifications</strong>, the input sensor delivers up to 2 mA at 3.3 V. The circuit evaluates the available base drive and saturation feasibility while staying strictly within the sensor's 2 mA output rating. Under the assumed 0.7 V base-emitter voltage and 3.3 V loaded input, <strong>R<sub>B</sub> = 1.3 kΩ</strong> is a <strong>theoretical minimum</strong> base resistance:
+            \[ R_B = \frac{V_{SENSOR} - V_{BE}}{I_{B(max)}} = \frac{3.3\,\text{V} - 0.7\,\text{V}}{2\,\text{mA}} = \frac{2.6\,\text{V}}{2\,\text{mA}} = 1.3\,\text{k}\Omega \]
+        </div>
+
+        <!-- Deep Saturation Warning & Forced Beta Clarification -->
+        <div class="calc-warning-box" style="margin-top:16px;padding:16px 20px;background:rgba(255,214,0,0.06);border:1px solid rgba(255,214,0,0.3);border-left:4px solid var(--yellow);border-radius:var(--rad-xs);">
+            <div style="font-family:var(--ff-display);font-size:0.78rem;letter-spacing:1.5px;color:var(--yellow);margin-bottom:10px;display:flex;align-items:center;gap:8px;">
+                <i class="fas fa-triangle-exclamation"></i> CRITICAL ANALYSIS: BASE DRIVE OVERDRIVE VS. DEEP SATURATION
+            </div>
+            <div style="font-size:0.88rem;line-height:1.65;color:var(--text);">
+                <p style="margin-bottom:10px;">
+                    <strong>1. Theoretical Minimum at 2 mA Limit:</strong><br>
+                    \(R_B = 1.3\,\text{k}\Omega\) is derived strictly under the assumed conditions of \(V_{BE} = 0.7\,\text{V}\) and a stiff \(V_{SENSOR} = 3.3\,\text{V}\) loaded input:
+                    \[ I_B = \frac{3.3\,\text{V} - 0.7\,\text{V}}{1300\,\Omega} = 2.0\,\text{mA} \]
+                    For a load drawing \(I_C \approx 100\,\text{mA}\), the forced current gain is:
+                    \[ \beta_{\text{forced}} = \frac{I_C}{I_B} = \frac{100\,\text{mA}}{2\,\text{mA}} = 50 \]
+                </p>
+                <p style="margin-bottom:10px;">
+                    <strong>2. The 1.6&times; Overdrive Figure Explained:</strong><br>
+                    The 1.6&times; overdrive factor comes solely from comparing the available \(2.0\,\text{mA}\) base drive with the theoretical active-region minimum estimate:
+                    \[ I_{B(active\_min)} = \frac{I_C}{\beta} = \frac{100\,\text{mA}}{80} = 1.25\,\text{mA} \quad \left(\text{or } \frac{98.33\,\text{mA}}{80} \approx 1.23\,\text{mA}\right) \]
+                    \[ \text{Overdrive Factor} = \frac{2.0\,\text{mA}}{1.23\,\text{mA}} \approx 1.63\times \]
+                    <em>An increase in base drive is not equivalent to proof of deep saturation.</em>
+                </p>
+                <p style="margin:0;">
+                    <strong style="color:var(--yellow);"><i class="fas fa-shield-alt"></i> Clear Engineering Warning:</strong><br>
+                    Standard switching specifications for the 2N2222 transistor define deep saturation (\(V_{CE(sat)} \le 0.2\,\text{V}\) or \(\le 0.3\,\text{V}\)) at a forced beta of \(\beta_{\text{forced}} = 10\) (which would require \(I_B = 10\,\text{mA}\), 5&times; more than our 2 mA sensor can source). Operating at \(\beta_{\text{forced}} = 50\) evaluates saturation feasibility, but does <strong>not</strong> establish that the transistor reaches \(V_{CE(sat)} \le 0.2\,\text{V}\). Achieving \(V_{CE(sat)} \le 0.2\,\text{V}\) in practice <strong>still requires datasheet curve confirmation or direct bench measurement</strong>.
+                </p>
+            </div>
         </div>
     </section>
 
@@ -810,7 +836,9 @@
         <div class="calc-explanation">
             <i class="fas fa-info-circle text-accent"></i>&nbsp;
             Base current flows into the base terminal from the 3.3V sensor. At R<sub>B</sub> = 1.3 kΩ, I<sub>B</sub> = 2.00 mA,
-            which fully utilizes the sensor's rated 2 mA drive capability and guarantees the BJT is firmly pushed into saturation.
+            which fully utilizes the sensor's rated 2 mA drive capability to evaluate available base drive and saturation feasibility.
+            Note that 1.3 kΩ is a theoretical minimum under assumed V<sub>BE</sub> = 0.7 V and loaded V<sub>SENSOR</sub> = 3.3 V;
+            verifying that the transistor achieves V<sub>CE(sat)</sub> &le; 0.2 V under &beta;<sub>forced</sub> = 50 requires datasheet confirmation or bench measurement.
         </div>
     </section>
 
@@ -977,9 +1005,7 @@
         <!-- Explanation -->
         <div class="calc-explanation">
             <i class="fas fa-info-circle text-accent"></i>&nbsp;
-            In deep saturation (V<sub>CE</sub> = 0.2 V), the transistor dissipates only ~19.7 mW. Even in the worst-case active region
-            midpoint (V<sub>CE</sub> = 6 V, I<sub>C</sub> = 50 mA), maximum power dissipation is P<sub>D(max)</sub> = 300 mW, which
-            is safely below the 625 mW limit of the 2N2222.
+            At the nominal saturation target (V<sub>CE</sub> = 0.2 V), the transistor dissipates only ~19.7 mW. Even if the transistor operates at a higher saturation voltage (e.g., V<sub>CE(sat)</sub> &approx; 0.3 V to 0.4 V due to &beta;<sub>forced</sub> = 50), power dissipation rises to only ~30–40 mW. In the worst-case active region midpoint (V<sub>CE</sub> = 6 V, I<sub>C</sub> = 50 mA), maximum power dissipation is P<sub>D(max)</sub> = 300 mW, which is safely below the 625 mW limit of the 2N2222.
         </div>
     </section>
 

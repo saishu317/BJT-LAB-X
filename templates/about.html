@@ -523,12 +523,17 @@
                 Buzzers</strong>. The system interfaces a weak sensor signal (<strong>2 mA at 3.3 V</strong>) with a
             high-current doorbell buzzer drawing <strong>100 mA at 12 V</strong> (load resistance <strong>R<sub>L</sub>
                 = 120 Ω</strong>) using an NPN transistor (<strong>2N2222, minimum gain &beta; = 80</strong>) operating
-            in saturation and cut-off modes. The platform calculates optimal base resistance
-            (<strong>R<sub>B(design)</sub> = 1.3 kΩ</strong> for deep saturation with an overdrive factor of 1.6&times;,
+            in saturation and cut-off modes. The platform evaluates the available base drive and saturation feasibility,
+            calculating the <strong>maximum-drive base resistance at the 2 mA limit</strong>
+            (<strong>R<sub>B(design)</sub> = 1.3 kΩ</strong>, providing a nominal overdrive factor of 1.6&times; relative to the active-region estimate,
             and <strong>R<sub>B(threshold)</sub> &approx; 2.11 kΩ</strong> for buzzer switching), evaluates transistor
-            power dissipation to guarantee thermal safety, and demonstrates inductive kickback suppression using a
+            power dissipation to verify thermal safety, and demonstrates inductive kickback suppression using a
             <strong>1N4001 flyback clamp diode</strong>.
         </p>
+        <div style="margin-top:14px;padding:12px 16px;background:rgba(255,214,0,0.06);border:1px solid rgba(255,214,0,0.25);border-left:3px solid var(--yellow);border-radius:var(--rad-xs);font-size:0.85rem;line-height:1.55;">
+            <strong style="color:var(--yellow);"><i class="fas fa-triangle-exclamation"></i> Engineering Note: Base Drive vs. Deep Saturation:</strong> 
+            R<sub>B</sub> = 1.3 kΩ is a theoretical minimum calculated under the assumed 0.7 V base-emitter voltage and 3.3 V loaded input (I<sub>B</sub> = 2.0 mA, yielding &beta;<sub>forced</sub> = 50). The 1.6&times; overdrive factor compares 2 mA with the 1.25 mA active-region estimate; it does not prove deep saturation. Achieving V<sub>CE(sat)</sub> &le; 0.2 V still requires datasheet curve confirmation or direct bench measurement.
+        </div>
     </div>
 </section>
 

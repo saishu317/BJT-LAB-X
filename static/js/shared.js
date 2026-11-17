@@ -5,7 +5,7 @@
  *  - Input Sensor Signal: 2 mA at 3.3 V
  *  - Load: Doorbell buzzer drawing 100 mA at 12 V (RL = 12 V / 0.1 A = 120 Ω)
  *  - Transistor: NPN BJT (2N2222), Minimum gain β = 80
- *  - Deep saturation guarantee: V_CE(sat) ≤ 0.2 V
+ *  - Evaluates available base drive & saturation feasibility (target V_CE(sat) ≤ 0.2 V)
  *  - Flyback Diode: 1N4001 clamping inductive back-EMF spike
  */
 
@@ -28,7 +28,7 @@ const BJT = {
     // Slider bounds
     RB_MIN: 0,
     RB_MAX: 100000,
-    RB_DEFAULT: 1300,     // 1.3 kΩ (optimal deep saturation design for 2 mA sensor drive)
+    RB_DEFAULT: 1300,     // 1.3 kΩ (maximum-drive base resistance at the 2 mA limit)
     RB_THRESHOLD: 2114,   // ~2.1 kΩ (boundary where buzzer switches ON/OFF)
 
     // Runtime state

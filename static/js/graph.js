@@ -409,7 +409,7 @@
         ctx.stroke();
 
         // 3. THRESHOLD MARKERS:
-        // (A) Deep Saturation Design Point (PS-37: VCE = 0.20V, RB = 1.3 kΩ)
+        // (A) Maximum-Drive Design Point (PS-37: target VCE = 0.20V, RB = 1.3 kΩ at 2 mA limit)
         const deepVce = BJT.VCE_SAT;
         const deepIc  = ((BJT.VCC - BJT.VCE_SAT) / BJT.RL) * 1000;
         const dx = xPx(deepVce);
@@ -849,7 +849,7 @@
         },
         saturation: {
             title: 'SATURATION REGION REACHED (BUZZER ON)!',
-            msg: 'The transistor is in deep saturation with V_CE ≈ V_CE(sat) ≤ 0.2V. Base drive is sufficient (RB ≤ 2.1 kΩ, optimal design 1.3 kΩ) to drive rated buzzer current (~98.3 mA / 100 mA), turning the doorbell buzzer ON!'
+            msg: 'The transistor operates in saturation with V_CE ≤ 0.40 V (nominal target 0.2 V). Base drive (RB ≤ 2.1 kΩ, max-drive design 1.3 kΩ at 2 mA limit) supplies sufficient current to activate the buzzer, though V_CE(sat) ≤ 0.2 V requires datasheet confirmation or measurement.'
         },
         cutoff: {
             title: 'CUT-OFF REGION REACHED (BUZZER OFF)!',

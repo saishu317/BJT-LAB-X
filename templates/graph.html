@@ -483,7 +483,7 @@
 
             <!-- Presets Bar (PS-37 Key Operating Points) -->
             <div class="graph-presets">
-                <button type="button" class="preset-btn" data-rb="1300" title="PS-37 Deep Saturation: IB=2mA, Buzzer ON">DEEP SAT 1.3kΩ</button>
+                <button type="button" class="preset-btn" data-rb="1300" title="PS-37 Maximum-Drive (2 mA limit): IB=2mA, Buzzer ON">MAX DRIVE 1.3kΩ</button>
                 <button type="button" class="preset-btn" data-rb="2114" title="Buzzer ON/OFF Boundary Threshold">THRESH 2.1kΩ</button>
                 <button type="button" class="preset-btn" data-rb="5000" title="Active Region: Linear amplification">ACT 5kΩ</button>
                 <button type="button" class="preset-btn" data-rb="50000" title="Cut-off Region: Transistor OFF">CUT 50kΩ</button>
@@ -578,7 +578,8 @@
             <div class="ric-icon"><i class="fas fa-bolt"></i></div>
             <div class="ric-title">SATURATION REGION (V<sub>CE</sub> &le; 0.40 V)</div>
             <div class="ric-desc">
-                <strong>Boundary:</strong> V<sub>CE</sub> &le; 0.40 V, R<sub>B</sub> &le; 2.15 kΩ (PS-37 Deep Saturation: V<sub>CE</sub> &le; 0.20 V at R<sub>B</sub> = 1.3 kΩ).<br>
+                <strong>Boundary:</strong> V<sub>CE</sub> &le; 0.40 V, R<sub>B</sub> &le; 2.15 kΩ (PS-37 Max Drive: R<sub>B</sub> = 1.3 kΩ, I<sub>B</sub> = 2.0 mA; nominal V<sub>CE</sub> &approx; 0.20 V target).<br>
+                <strong>Feasibility Note:</strong> R<sub>B</sub> = 1.3 kΩ is a theoretical minimum at the 2 mA sensor limit (&beta;<sub>forced</sub> = 50). Verifying V<sub>CE(sat)</sub> &le; 0.2 V requires datasheet confirmation or bench measurement.<br>
                 <strong>Junction State:</strong> Both E-B and C-B junctions are forward-biased.<br>
                 <strong>Device Behavior:</strong> Acts as a closed switch (R<sub>ON</sub> &approx; 2 Ω). Collector current is clamped by the load to maximum (~97–100 mA).<br>
                 <strong>Buzzer Output:</strong> <span style="color:var(--green);font-weight:700;">FULLY ACTIVE (ON ⚡)</span>.

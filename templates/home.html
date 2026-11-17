@@ -491,7 +491,7 @@
     </h3>
     <p class="problem-text" style="margin-bottom:20px;">
       Design and analyze an <strong>NPN BJT current amplifier switch</strong> operating in saturation and cut-off modes to interface a <strong>weak sensor signal (2 mA at 3.3 V)</strong> with a <strong>high-decibel doorbell buzzer drawing 100 mA at 12 V</strong>. 
-      The circuit guarantees deep saturation (<span class="problem-highlight">V<sub>CE,sat</sub> &le; 0.2 V</span>) using minimum transistor gain <span class="problem-highlight">&beta; = 80</span>, calculates safe power dissipation in the BJT, and integrates a <strong>1N4001 flyback diode</strong> to clamp inductive back-EMF spikes.
+      The circuit evaluates the available base drive and saturation feasibility (<span class="problem-highlight">V<sub>CE,sat</sub> &le; 0.2 V</span> target) using minimum transistor gain <span class="problem-highlight">&beta; = 80</span>, calculates safe power dissipation in the BJT, and integrates a <strong>1N4001 flyback diode</strong> to clamp inductive back-EMF spikes.
     </p>
 
     <!-- PS-37 Specifications Grid -->
@@ -513,13 +513,26 @@
         <div style="font-family:var(--ff-mono);font-size:0.95rem;color:#fff;font-weight:600;margin-top:4px;">&beta; = 80 (2N2222)</div>
       </div>
       <div style="background:rgba(10,16,30,0.7);padding:12px 16px;border-radius:var(--rad-xs);border:1px solid rgba(0,212,255,0.15);">
-        <div style="font-family:var(--ff-display);font-size:0.62rem;color:var(--text2);letter-spacing:1px;">DEEP SATURATION RESISTANCE</div>
-        <div style="font-family:var(--ff-mono);font-size:0.95rem;color:var(--cyan);font-weight:600;margin-top:4px;">R<sub>B(design)</sub> = 1.3 kΩ (Overdrive 1.6&times;)</div>
+        <div style="font-family:var(--ff-display);font-size:0.62rem;color:var(--text2);letter-spacing:1px;">MAXIMUM-DRIVE BASE RESISTANCE</div>
+        <div style="font-family:var(--ff-mono);font-size:0.95rem;color:var(--cyan);font-weight:600;margin-top:4px;">R<sub>B(design)</sub> = 1.3 kΩ (2 mA Limit)</div>
       </div>
       <div style="background:rgba(10,16,30,0.7);padding:12px 16px;border-radius:var(--rad-xs);border:1px solid rgba(0,212,255,0.15);">
         <div style="font-family:var(--ff-display);font-size:0.62rem;color:var(--text2);letter-spacing:1px;">INDUCTIVE PROTECTION</div>
         <div style="font-family:var(--ff-mono);font-size:0.95rem;color:#ff9100;font-weight:600;margin-top:4px;">1N4001 Flyback Clamp Diode</div>
       </div>
+    </div>
+
+    <!-- Engineering Note & Warning on Base Drive vs. Deep Saturation -->
+    <div style="margin-top:18px;padding:14px 18px;background:rgba(255,214,0,0.06);border:1px solid rgba(255,214,0,0.28);border-left:4px solid var(--yellow);border-radius:var(--rad-xs);">
+      <div style="font-family:var(--ff-display);font-size:0.75rem;letter-spacing:1.5px;color:var(--yellow);margin-bottom:6px;display:flex;align-items:center;gap:8px;">
+        <i class="fas fa-triangle-exclamation"></i> ENGINEERING NOTE: BASE DRIVE OVERDRIVE VS. DEEP SATURATION
+      </div>
+      <p style="font-size:0.85rem;line-height:1.6;color:var(--text);margin:0;">
+        <strong>Theoretical Minimum Resistance:</strong> <strong>R<sub>B</sub> = 1.3 kΩ</strong> is a theoretical minimum calculated under the assumed 0.7 V base-emitter voltage and 3.3 V loaded sensor input: 
+        <span style="font-family:var(--ff-mono);color:var(--cyan);">I<sub>B</sub> = (3.3 V − 0.7 V) / 1300 Ω = 2.0 mA</span>, giving a forced gain of <span style="font-family:var(--ff-mono);color:var(--cyan);">&beta;<sub>forced</sub> = 100 mA / 2 mA = 50</span>.<br>
+        <strong>1.6&times; Overdrive Context:</strong> The 1.6&times; figure comes strictly from comparing the 2.0 mA base drive with the 1.25 mA active-region estimate (I<sub>C</sub> / &beta; = 100 mA / 80). An increase in base drive is <em>not</em> equivalent to proof of deep saturation.<br>
+        <strong>Datasheet Warning:</strong> In 2N2222 datasheets, deep saturation is typically specified at &beta;<sub>forced</sub> &le; 10 (requiring I<sub>B</sub> &approx; 10 mA). Reaching <span style="color:var(--yellow);font-weight:600;">V<sub>CE(sat)</sub> &le; 0.2 V</span> at &beta;<sub>forced</sub> = 50 is not guaranteed by this calculation alone and <strong>still requires datasheet confirmation or measurement</strong>.
+      </p>
     </div>
   </div>
 </section>
